@@ -73,12 +73,16 @@ const renewBtn = document.querySelector('.renew-btn');
 
 // Show modal function
 function showModal(modal) {
-    modal.style.display = 'block';
+    if (modal) {
+        modal.style.display = 'block';
+    }
 }
 
 // Hide modal function
 function hideModal(modal) {
-    modal.style.display = 'none';
+    if (modal) {
+        modal.style.display = 'none';
+    }
 }
 
 // Close modals when clicking the X button
@@ -97,11 +101,13 @@ window.addEventListener('click', (e) => {
     if (e.target === dashboardModal) hideModal(dashboardModal);
 });
 
-// Show login modal when clicking login button
-loginBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    showModal(loginModal);
-});
+// Initialize login button
+if (loginBtn) {
+    loginBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        showModal(loginModal);
+    });
+}
 
 // Switch between login and register modals
 showRegisterBtn.addEventListener('click', (e) => {
@@ -117,19 +123,50 @@ showLoginBtn.addEventListener('click', (e) => {
 });
 
 // Handle login form submission
-document.querySelector('.login-form').addEventListener('submit', (e) => {
-    e.preventDefault();
-    // Here you would typically handle authentication
-    // For demo purposes, we'll just show the dashboard
-    hideModal(loginModal);
-    showModal(dashboardModal);
-    updateDashboardInfo();
+document.addEventListener('DOMContentLoaded', () => {
+    const loginForm = document.querySelector('.login-form');
+    if (loginForm) {
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const submitBtn = this.querySelector('.submit-btn');
+            submitBtn.textContent = 'Logging in...';
+            submitBtn.disabled = true;
+
+            const email = this.querySelector('input[type="email"]').value;
+            const password = this.querySelector('input[type="password"]').value;
+
+            auth.signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    hideModal(loginModal);
+                    // Update UI for logged in user
+                    updateUIForLoggedInUser(userCredential.user);
+                    // Check if user is admin
+                    return database.ref('admins').child(userCredential.user.uid).once('value')
+                        .then(snapshot => {
+                            if (snapshot.exists()) {
+                                showAdminDashboard(userCredential.user);
+                            } else {
+                                showUserDashboard(userCredential.user);
+                            }
+                        });
+                })
+                .catch((error) => {
+                    alert('Login failed: ' + error.message);
+                })
+                .finally(() => {
+                    submitBtn.textContent = 'Login';
+                    submitBtn.disabled = false;
+                });
+        });
+    }
 });
 
 // Handle logout
 logoutBtn.addEventListener('click', () => {
-    hideModal(dashboardModal);
-    // Here you would typically handle logout logic
+    auth.signOut().then(() => {
+        hideModal(dashboardModal);
+        updateUIForLoggedOutUser();
+    });
 });
 
 // Handle subscription renewal
@@ -156,8 +193,8 @@ function updateDashboardInfo() {
 
 // Initialize map
 function initMap() {
-    // Create map centered on Chiredzi
-    const map = L.map('map').setView([-21.033333, 31.666667], 13);
+    // Create map centered on Tshovani, Chiredzi
+    const map = L.map('map').setView([-21.0297, 31.6615], 15); // Tshovani coordinates with closer zoom
 
     // Add OpenStreetMap tiles
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -165,9 +202,9 @@ function initMap() {
     }).addTo(map);
 
     // Add marker for MatMats Ambulance location
-    L.marker([-21.033333, 31.666667])
+    L.marker([-21.0297, 31.6615])
         .addTo(map)
-        .bindPopup('MatMats Ambulance Services<br>3634 Lion Drive, Chiredzi')
+        .bindPopup('MatMats Ambulance Services<br>3634 Lion Drive, Tshovani<br>Chiredzi, Zimbabwe')
         .openPopup();
 }
 
@@ -175,41 +212,6 @@ function initMap() {
 document.addEventListener('DOMContentLoaded', () => {
     initMap();
 });
-
-// Login Form Handling
-const loginForm = document.querySelector('.login-form');
-if (loginForm) {
-    loginForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const submitBtn = this.querySelector('.submit-btn');
-        submitBtn.textContent = 'Logging in...';
-        submitBtn.disabled = true;
-
-        const email = this.querySelector('input[type="email"]').value;
-        const password = this.querySelector('input[type="password"]').value;
-
-        auth.signInWithEmailAndPassword(email, password)
-            .then((userCredential) => {
-                hideModal(loginModal);
-                // Check if user is admin
-                database.ref('admins').child(userCredential.user.uid).once('value')
-                    .then(snapshot => {
-                        if (snapshot.exists()) {
-                            showAdminDashboard(userCredential.user);
-                        } else {
-                            showUserDashboard(userCredential.user);
-                        }
-                    });
-            })
-            .catch((error) => {
-                alert('Login failed: ' + error.message);
-            })
-            .finally(() => {
-                submitBtn.textContent = 'Login';
-                submitBtn.disabled = false;
-            });
-    });
-}
 
 // Forgot Password Handling
 const forgotPassword = document.querySelector('.forgot-password');
@@ -229,207 +231,241 @@ if (forgotPassword) {
 }
 
 // Subscription Form Handling
-const subscribeBtn = document.querySelector('.subscribe-btn');
-if (subscribeBtn) {
-    subscribeBtn.addEventListener('click', async () => {
-        console.log('Subscribe button clicked'); // Debug log
+function handleSubscribeButtonClick(btn) {
+    const user = auth.currentUser;
+    const plan = btn.getAttribute('data-plan');
+    const price = btn.getAttribute('data-price');
+    
+    if (!user) {
+        showModal(loginModal);
+        return;
+    }
 
-        const user = auth.currentUser;
-        if (!user) {
-            alert('Please log in to subscribe');
-            showModal(loginModal);
-            return;
-        }
-
-        const paymentForm = document.getElementById('payment-form');
+    const paymentForm = document.getElementById('payment-form');
+    
+    // Show payment form if not already visible
+    if (paymentForm.style.display === 'none' || !paymentForm.style.display) {
+        // Determine coverage area based on plan and selected tab
+        let coverage;
+        const selectedTab = document.querySelector('.tab-btn.active').getAttribute('data-tab');
         
-        // Show payment form if not already visible
-        if (paymentForm.style.display === 'none' || !paymentForm.style.display) {
-            console.log('Showing payment form'); // Debug log
-            paymentForm.style.display = 'block';
-            subscribeBtn.textContent = 'Confirm Payment';
-            return;
+        if (selectedTab === 'local') {
+            switch(plan.toLowerCase()) {
+                case 'basic':
+                    coverage = 'Local (Within Chiredzi)';
+                    break;
+                case 'standard':
+                    coverage = 'Regional (Chiredzi and Surrounding Areas)';
+                    break;
+                case 'premium':
+                    coverage = 'National (Anywhere in Zimbabwe)';
+                    break;
+                default:
+                    coverage = 'Local Area';
+            }
+        } else {
+            switch(plan.toLowerCase()) {
+                case 'basic':
+                    coverage = 'Outside Chiredzi (15KM+ Radius)';
+                    break;
+                case 'standard':
+                    coverage = 'Regional (Outside Chiredzi and Surrounding Areas)';
+                    break;
+                case 'premium':
+                    coverage = 'National (Anywhere in Zimbabwe)';
+                    break;
+                default:
+                    coverage = 'Outside Local Area';
+            }
         }
 
-        // Get EcoCash reference number
-        const referenceNumber = document.getElementById('ecocash-reference').value;
-        if (!referenceNumber) {
-            alert('Please enter the EcoCash reference number');
-            return;
+        // Update summary details
+        document.getElementById('summary-plan').textContent = plan.charAt(0).toUpperCase() + plan.slice(1) + ' Package';
+        document.getElementById('summary-amount').textContent = price;
+        document.getElementById('summary-coverage').textContent = coverage;
+        
+        // Update payment amount in instructions
+        const paymentAmount = document.querySelector('.payment-amount');
+        if (paymentAmount) {
+            paymentAmount.textContent = price;
         }
 
-        // Disable the submit button to prevent multiple clicks
-        subscribeBtn.disabled = true;
-        subscribeBtn.textContent = 'Processing...';
+        // Make EcoCash code clickable
+        makeEcoCashCodeClickable();
 
-        try {
-            console.log('Processing subscription with reference:', referenceNumber); // Debug log
+        paymentForm.style.display = 'block';
+        paymentForm.scrollIntoView({ behavior: 'smooth' });
+    }
+}
 
-            // Save subscription data to Firebase
+// Handle payment submission
+function handlePaymentSubmission(event) {
+    event.preventDefault();
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const referenceNumber = document.getElementById('ecocash-reference').value;
+    const paymentScreenshot = document.getElementById('payment-screenshot').files[0];
+    const submitBtn = document.querySelector('.submit-payment-btn');
+
+    if (!referenceNumber || !paymentScreenshot) {
+        alert('Please provide both the transaction ID and payment screenshot');
+        return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Processing...';
+
+    // Upload screenshot to Firebase Storage
+    const storageRef = firebase.storage().ref();
+    const screenshotRef = storageRef.child(`payment_proofs/${user.uid}/${Date.now()}_${paymentScreenshot.name}`);
+    
+    screenshotRef.put(paymentScreenshot)
+        .then(() => screenshotRef.getDownloadURL())
+        .then(screenshotUrl => {
+            // Save subscription data
             const subscriptionData = {
                 userId: user.uid,
                 userEmail: user.email,
+                plan: document.getElementById('summary-plan').textContent,
+                amount: parseFloat(document.getElementById('summary-amount').textContent),
+                coverage: document.getElementById('summary-coverage').textContent,
                 paymentMethod: 'EcoCash',
                 referenceNumber: referenceNumber,
-                amount: 1, // $1
+                paymentProof: screenshotUrl,
                 status: 'pending',
-                startDate: new Date().toISOString(),
-                endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
-                createdAt: new Date().toISOString()
+                submittedAt: new Date().toISOString()
             };
 
-            // Save to Firebase
-            await database.ref('subscriptions').push(subscriptionData);
-            console.log('Subscription saved to Firebase'); // Debug log
+            return database.ref('subscriptions').push(subscriptionData);
+        })
+        .then(() => {
+            // Show success message
+            const statusMsg = document.querySelector('.submission-status');
+            statusMsg.style.display = 'block';
+            
+            // Hide payment form after 3 seconds
+            setTimeout(() => {
+                document.getElementById('payment-form').style.display = 'none';
+            }, 3000);
 
-            // Hide payment form
-            paymentForm.style.display = 'none';
-            
-            // Reset button
-            subscribeBtn.textContent = 'Subscribe Now';
-            subscribeBtn.disabled = false;
-            
-            // Show success message and update dashboard
             alert('Thank you for subscribing! Your payment will be verified shortly.');
-            showUserDashboard(user);
-
-        } catch (error) {
+        })
+        .catch(error => {
             console.error('Error processing subscription:', error);
-            alert('There was an error processing your subscription. Please try again later.');
-            subscribeBtn.disabled = false;
-            subscribeBtn.textContent = 'Confirm Payment';
-        }
-    });
-} else {
-    console.error('Subscribe button not found'); // Debug log
+            alert('There was an error processing your subscription. Please try again.');
+        })
+        .finally(() => {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit for Approval';
+        });
 }
 
-// Emergency Alerts Opt-in
-const optInBtn = document.querySelector('.opt-in-btn');
-if (optInBtn) {
-    optInBtn.addEventListener('click', () => {
-        const user = auth.currentUser;
-        if (!user) {
-            alert('Please log in to opt-in for alerts');
-            showModal(loginModal);
-            return;
-        }
+// Make EcoCash code clickable
+function makeEcoCashCodeClickable() {
+    const ecocashCode = document.querySelector('.ecocash-code');
+    if (ecocashCode) {
+        ecocashCode.innerHTML = `
+            <a href="tel:*151*1*0776378872*${document.getElementById('summary-amount').textContent}%23" class="ecocash-link">
+                *151*1*0776378872*${document.getElementById('summary-amount').textContent}#
+            </a>
+            <button class="copy-code-btn" onclick="copyEcoCashCode()">
+                <i class="fas fa-copy"></i> Copy Code
+            </button>
+        `;
+    }
+}
 
-        const alertData = {
-            userId: user.uid,
-            timestamp: new Date().toISOString(),
-            preferences: {
-                roadClosures: true,
-                trafficIncidents: true,
-                weatherConditions: true,
-                responseTimes: true
-            }
-        };
-
-        database.ref('alertPreferences').push(alertData)
-            .then(() => {
-                alert('Alert preferences saved successfully!');
-            })
-            .catch(error => {
-                console.error('Error saving alert preferences:', error);
-                alert('There was an error saving your preferences. Please try again later.');
-            });
+// Copy EcoCash code to clipboard
+function copyEcoCashCode() {
+    const amount = document.getElementById('summary-amount').textContent;
+    const code = `*151*1*0776378872*${amount}#`;
+    
+    navigator.clipboard.writeText(code).then(() => {
+        const copyBtn = document.querySelector('.copy-code-btn');
+        const originalText = copyBtn.innerHTML;
+        copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        setTimeout(() => {
+            copyBtn.innerHTML = originalText;
+        }, 2000);
+    }).catch(err => {
+        console.error('Failed to copy code:', err);
+        alert('Failed to copy code. Please try manually copying.');
     });
 }
 
-// User Dashboard
+// Add click event listeners to all subscribe buttons and payment submission
+document.addEventListener('DOMContentLoaded', () => {
+    const subscribeButtons = document.querySelectorAll('.subscribe-btn');
+    subscribeButtons.forEach(btn => {
+        btn.addEventListener('click', () => handleSubscribeButtonClick(btn));
+    });
+
+    const submitPaymentBtn = document.querySelector('.submit-payment-btn');
+    if (submitPaymentBtn) {
+        submitPaymentBtn.addEventListener('click', handlePaymentSubmission);
+    }
+});
+
+// Show User Dashboard Function
 function showUserDashboard(user) {
     const dashboardHtml = `
-        <div class="dashboard">
-            <h2>Welcome, ${user.email}</h2>
-            <div class="subscription-info">
-                <h3>Your Subscription</h3>
-                <div id="subscriptionStatus"></div>
+        <div class="user-dashboard">
+            <h2>Welcome, ${user.displayName || user.email}</h2>
+            <div class="dashboard-content">
+                <div class="subscription-info">
+                    <h3>Subscription Details</h3>
+                    <p>Member since: <span id="memberSince"></span></p>
+                    <p>Next billing date: <span id="nextBillingDate"></span></p>
+                </div>
+                <div class="dashboard-actions">
+                    <button class="renew-btn">Renew Subscription</button>
+                    <button class="logout-btn">Logout</button>
+                </div>
             </div>
-            <button class="logout-btn">Logout</button>
         </div>
     `;
 
-    // Create and show dashboard modal
-    const dashboardModal = document.createElement('div');
-    dashboardModal.className = 'modal';
-    dashboardModal.innerHTML = `
+    // Create and show user dashboard modal
+    const userModal = document.createElement('div');
+    userModal.className = 'modal';
+    userModal.id = 'dashboardModal';
+    userModal.innerHTML = `
         <div class="modal-content">
             <span class="close">&times;</span>
             ${dashboardHtml}
         </div>
     `;
-    document.body.appendChild(dashboardModal);
-    dashboardModal.style.display = 'block';
+    document.body.appendChild(userModal);
+    userModal.style.display = 'block';
 
     // Close dashboard modal
-    const closeBtn = dashboardModal.querySelector('.close');
+    const closeBtn = userModal.querySelector('.close');
     closeBtn.onclick = () => {
-        dashboardModal.remove();
+        userModal.remove();
     };
 
-    // Logout button
-    const logoutBtn = dashboardModal.querySelector('.logout-btn');
+    // Handle logout
+    const logoutBtn = userModal.querySelector('.logout-btn');
     logoutBtn.onclick = () => {
-        auth.signOut();
-        dashboardModal.remove();
+        auth.signOut().then(() => {
+            userModal.remove();
+            updateUIForLoggedOutUser();
+        });
     };
 
-    // Load subscription status
-    loadSubscriptionStatus(user.uid);
-}
+    // Update dashboard information
+    updateDashboardInfo();
 
-// Load subscription status
-function loadSubscriptionStatus(userId) {
-    database.ref('subscriptions').orderByChild('userId').equalTo(userId).once('value')
-        .then(snapshot => {
-            const subscriptionStatus = document.getElementById('subscriptionStatus');
-            if (snapshot.exists()) {
-                const subscription = Object.values(snapshot.val())[0];
-                const endDate = new Date(subscription.endDate);
-                const today = new Date();
-                const daysLeft = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
-
-                if (daysLeft > 0) {
-                    subscriptionStatus.innerHTML = `
-                        <p>Status: Active</p>
-                        <p>Days remaining: ${daysLeft}</p>
-                        <button class="renew-btn">Renew Subscription</button>
-                    `;
-
-                    // Renew subscription button
-                    const renewBtn = subscriptionStatus.querySelector('.renew-btn');
-                    renewBtn.onclick = () => {
-                        const newSubscriptionData = {
-                            userId: userId,
-                            startDate: new Date().toISOString(),
-                            endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-                            status: 'active'
-                        };
-
-                        database.ref('subscriptions').push(newSubscriptionData)
-                            .then(() => {
-                                alert('Subscription renewed successfully!');
-                                loadSubscriptionStatus(userId);
-                            })
-                            .catch(error => {
-                                console.error('Error renewing subscription:', error);
-                                alert('There was an error renewing your subscription. Please try again later.');
-                            });
-                    };
-                } else {
-                    subscriptionStatus.innerHTML = `
-                        <p>Status: Expired</p>
-                        <button class="renew-btn">Renew Subscription</button>
-                    `;
-                }
-            } else {
-                subscriptionStatus.innerHTML = `
-                    <p>No active subscription</p>
-                    <button class="subscribe-btn">Subscribe Now</button>
-                `;
-            }
-        });
+    // Handle renew subscription
+    const renewBtn = userModal.querySelector('.renew-btn');
+    renewBtn.onclick = () => {
+        userModal.remove();
+        const subscribeButtons = document.querySelectorAll('.subscribe-btn');
+        if (subscribeButtons.length > 0) {
+            subscribeButtons[0].scrollIntoView({ behavior: 'smooth' });
+        }
+    };
 }
 
 // Update UI for logged in user
@@ -437,14 +473,31 @@ function updateUIForLoggedInUser(user) {
     const loginBtn = document.querySelector('.login-btn');
     if (loginBtn) {
         loginBtn.textContent = 'My Account';
+        loginBtn.onclick = (e) => {
+            e.preventDefault();
+            showUserDashboard(user);
+        };
     }
+
+    // Update all subscribe buttons
+    const subscribeButtons = document.querySelectorAll('.subscribe-btn');
+    subscribeButtons.forEach(btn => {
+        if (btn.textContent === 'Login to Subscribe') {
+            btn.textContent = 'Subscribe Now';
+        }
+    });
 }
 
 // Update UI for logged out user
 function updateUIForLoggedOutUser() {
+    // Reset login button
     const loginBtn = document.querySelector('.login-btn');
     if (loginBtn) {
         loginBtn.textContent = 'Login';
+        loginBtn.onclick = (e) => {
+            e.preventDefault();
+            showModal(loginModal);
+        };
     }
 }
 
@@ -858,4 +911,188 @@ function updateTransactionStatus(transactionId, newStatus) {
         console.error('Error updating transaction:', error);
         alert('Error updating transaction status. Please try again.');
     });
-} 
+}
+
+// Quotation Form Handling
+function showQuotationForm() {
+    const quotationHtml = `
+        <div class="modal" id="quotationModal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Get a Quotation</h2>
+                <form id="quotation-form" class="quotation-form">
+                    <div class="form-group">
+                        <label for="pickup-location">Pickup Location:</label>
+                        <input type="text" id="pickup-location" required placeholder="Enter pickup location">
+                    </div>
+                    <div class="form-group">
+                        <label for="destination">Destination:</label>
+                        <input type="text" id="destination" required placeholder="Enter destination">
+                    </div>
+                    <div class="form-group">
+                        <label for="service-type">Service Type:</label>
+                        <select id="service-type" required>
+                            <option value="">Select service type</option>
+                            <option value="emergency">Emergency Transport</option>
+                            <option value="non-emergency">Non-Emergency Transport</option>
+                            <option value="transfer">Hospital Transfer</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="contact-number">Contact Number:</label>
+                        <input type="tel" id="contact-number" required placeholder="Enter your phone number">
+                    </div>
+                    <button type="submit" class="submit-btn">Get Quote</button>
+                </form>
+                <div id="quotation-result" class="quotation-result" style="display: none;">
+                    <h3>Estimated Quote</h3>
+                    <div class="quote-details"></div>
+                    <button class="subscribe-btn" onclick="handleQuotationSubscribe()">Subscribe Now</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Add modal to body
+    document.body.insertAdjacentHTML('beforeend', quotationHtml);
+    
+    const quotationModal = document.getElementById('quotationModal');
+    const closeBtn = quotationModal.querySelector('.close');
+    const quotationForm = document.getElementById('quotation-form');
+
+    // Show modal
+    quotationModal.style.display = 'block';
+
+    // Close modal when clicking X
+    closeBtn.onclick = () => {
+        quotationModal.remove();
+    };
+
+    // Close modal when clicking outside
+    window.onclick = (e) => {
+        if (e.target === quotationModal) {
+            quotationModal.remove();
+        }
+    };
+
+    // Handle form submission
+    quotationForm.addEventListener('submit', handleQuotationSubmit);
+}
+
+// Handle quotation form submission
+function handleQuotationSubmit(e) {
+    e.preventDefault();
+    
+    const pickup = document.getElementById('pickup-location').value;
+    const destination = document.getElementById('destination').value;
+    const serviceType = document.getElementById('service-type').value;
+    const contactNumber = document.getElementById('contact-number').value;
+
+    // Calculate base price based on service type
+    let basePrice;
+    switch(serviceType) {
+        case 'emergency':
+            basePrice = 50;
+            break;
+        case 'non-emergency':
+            basePrice = 30;
+            break;
+        case 'transfer':
+            basePrice = 40;
+            break;
+        default:
+            basePrice = 30;
+    }
+
+    // Save quotation to database
+    const quotationData = {
+        pickup: pickup,
+        destination: destination,
+        serviceType: serviceType,
+        contactNumber: contactNumber,
+        basePrice: basePrice,
+        createdAt: new Date().toISOString()
+    };
+
+    database.ref('quotations').push(quotationData)
+        .then(() => {
+            // Show quotation result
+            const resultDiv = document.getElementById('quotation-result');
+            const detailsDiv = resultDiv.querySelector('.quote-details');
+            
+            detailsDiv.innerHTML = `
+                <p><strong>Service Type:</strong> ${serviceType.charAt(0).toUpperCase() + serviceType.slice(1)}</p>
+                <p><strong>From:</strong> ${pickup}</p>
+                <p><strong>To:</strong> ${destination}</p>
+                <p><strong>Estimated Base Price:</strong> $${basePrice}</p>
+                <p class="note">* Final price may vary based on distance and additional services required</p>
+            `;
+            
+            // Hide form and show result
+            document.getElementById('quotation-form').style.display = 'none';
+            resultDiv.style.display = 'block';
+        })
+        .catch(error => {
+            console.error('Error saving quotation:', error);
+            alert('Error generating quotation. Please try again.');
+        });
+}
+
+// Handle subscription from quotation
+function handleQuotationSubscribe() {
+    const quotationModal = document.getElementById('quotationModal');
+    if (quotationModal) {
+        quotationModal.remove();
+    }
+    
+    // Scroll to subscription plans
+    const subscriptionSection = document.querySelector('.subscription-plans');
+    if (subscriptionSection) {
+        subscriptionSection.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+// Add quotation button event listener
+document.addEventListener('DOMContentLoaded', () => {
+    const getQuoteBtn = document.querySelector('.get-quote-btn');
+    if (getQuoteBtn) {
+        getQuoteBtn.addEventListener('click', showQuotationForm);
+    }
+});
+
+// Add tab switching functionality
+document.addEventListener('DOMContentLoaded', () => {
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const pricingPlans = document.querySelectorAll('.pricing-plans');
+    const paymentForm = document.getElementById('payment-form');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            // Remove active class from all buttons and plans
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            pricingPlans.forEach(plan => plan.classList.remove('active'));
+
+            // Add active class to clicked button
+            button.classList.add('active');
+
+            // Show corresponding plans
+            const tabId = button.getAttribute('data-tab');
+            const activePlans = document.getElementById(`${tabId}-plans`);
+            if (activePlans) {
+                activePlans.classList.add('active');
+            }
+
+            // Hide payment form when switching tabs
+            if (paymentForm) {
+                paymentForm.style.display = 'none';
+            }
+
+            // Reinitialize subscription buttons for the newly displayed plans
+            const subscribeButtons = activePlans.querySelectorAll('.subscribe-btn');
+            subscribeButtons.forEach(btn => {
+                btn.removeEventListener('click', handleSubscribeButtonClick);
+                btn.addEventListener('click', () => handleSubscribeButtonClick(btn));
+            });
+        });
+    });
+});
