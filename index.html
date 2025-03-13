@@ -29,8 +29,8 @@
                 <li><a href="#home">Home</a></li>
                 <li><a href="#services">Services</a></li>
                 <li><a href="#pricing">Pricing</a></li>
-                <li><a href="#about">About</a></li>
                 <li><a href="#careers">Careers</a></li>
+                <li><a href="#about">About</a></li>
                 <li><a href="#testimonials">Testimonials</a></li>
                 <li><a href="#contact">Contact</a></li>
                 <li><a href="#login" class="login-btn">Login</a></li>
@@ -51,7 +51,7 @@
             <p>Fully equipped ambulance services with advanced life support systems and professional medical staff, ready to respond to your emergency needs anytime, anywhere in Zimbabwe. At MatMatts Ambulance, your health and safety is our concern.</p>
             <div class="hero-buttons">
                 <a href="tel:+263776378872" class="cta-button emergency">Call Now</a>
-                <a href="#subscribe" class="cta-button subscribe">Subscribe Now</a>
+                <a href="#subscription" class="cta-button subscribe">Subscribe Now</a>
             </div>
         </div>
     </section>
@@ -101,7 +101,7 @@
             <div class="service-card">
                 <img src="media/matmattsambulencecrew.jpg" alt="Hospital Transfer Service" class="service-card-image">
                 <h3>Hospital Transfer</h3>
-                <p>Safe and comfortable inter-facility transfers with our experienced medical staff providing continuous care and monitoring throughout the journey.</p>
+                <p>Safe and comfortable inter-facility transfers with our experience medical staff providing continuous care and monitoring throughout the journey.</p>
             </div>
             <div class="service-card">
                 <img src="media/matmattsambulencecrew3.jpg" alt="Medical Escort Service" class="service-card-image">
@@ -277,7 +277,7 @@
                             <div class="plan-tag">Premium</div>
                             <h3>Package 03</h3>
                             <div class="plan-price">
-                                <span class="amount">$3</span>
+                                <span class="amount">$4</span>
                                 <span class="period">/Month</span>
                             </div>
                         </div>
@@ -289,14 +289,14 @@
                                 <li><i class="fas fa-check"></i> Life Support</li>
                             </ul>
                         </div>
-                        <button class="subscribe-btn" data-plan="premium" data-price="3">Login to Subscribe</button>
+                        <button class="subscribe-btn" data-plan="premium" data-price="4">Login to Subscribe</button>
                     </div>
                 </div>
             </div>
 
             <div class="contact-info">
-                <p><i class="fas fa-location-dot"></i> Contact us at: Chiredzi, Zimbabwe</p>
-                <p class="terms">Terms & Conditions Apply</p>
+                <span><i class="fas fa-phone"></i> Mobile: +263 776 378 872</span>
+                <span><i class="fas fa-envelope"></i> Email: matmattsa@gmail.com</span>
             </div>
 
             <div id="payment-form" style="display: none;">
@@ -399,32 +399,181 @@
             <span class="close">&times;</span>
             <h2>My Dashboard</h2>
             <div class="dashboard-container">
-                <div class="subscription-status">
-                    <h3>Subscription Status</h3>
-                    <div class="status-card">
-                        <div class="status-header">
-                            <i class="fas fa-circle-check"></i>
-                            <span class="status-label" id="subscription-status">Loading...</span>
+                <!-- Personal Information Section -->
+                <div class="dashboard-section personal-info">
+                    <h3><i class="fas fa-user"></i> Personal Information</h3>
+                    <div class="info-card">
+                        <div class="info-item">
+                            <span class="label">Name:</span>
+                            <span class="value" id="user-name">Loading...</span>
                         </div>
-                        <div class="subscription-details">
-                            <p><strong>Current Plan:</strong> <span id="current-plan">Loading...</span></p>
-                            <p><strong>Monthly Fee:</strong> $<span id="plan-amount">-</span></p>
-                            <p><strong>Status:</strong> <span id="payment-status">-</span></p>
-                            <p><strong>Next Payment:</strong> <span id="next-payment">-</span></p>
-                            <p><strong>Member Since:</strong> <span id="member-since">-</span></p>
+                        <div class="info-item">
+                            <span class="label">Email:</span>
+                            <span class="value" id="user-email">Loading...</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Phone Number:</span>
+                            <span class="value" id="user-phone">Loading...</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Address:</span>
+                            <span class="value" id="user-address">Loading...</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Member Since:</span>
+                            <span class="value" id="member-since">Loading...</span>
+                        </div>
+                        <button class="edit-profile-btn">Edit Profile</button>
+                    </div>
+                </div>
+
+                <!-- Subscription Status Section -->
+                <div class="dashboard-section subscription-status">
+                    <h3><i class="fas fa-clipboard-check"></i> Subscription Status</h3>
+                    <div class="info-card">
+                        <div class="detail-item">
+                            <i class="fas fa-tag"></i>
+                            <span class="label">Current Plan:</span>
+                            <span class="value" id="current-plan">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-dollar-sign"></i>
+                            <span class="label">Monthly Fee:</span>
+                            <span class="value" id="monthly-fee">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span class="label">Coverage Area:</span>
+                            <span class="value" id="coverage-area">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-calendar"></i>
+                            <span class="label">Next Payment:</span>
+                            <span class="value" id="next-payment">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-clock"></i>
+                            <span class="label">Auto-Renewal:</span>
+                            <span class="value" id="auto-renewal">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-history"></i>
+                            <span class="label">Payment History:</span>
+                            <button class="view-history-btn">View History</button>
                         </div>
                     </div>
                 </div>
-                <div class="subscription-benefits" id="plan-benefits">
-                    <h3>Your Plan Benefits</h3>
-                    <ul class="benefits-list">
-                        <li><i class="fas fa-ambulance"></i> Loading benefits...</li>
-                    </ul>
+
+                <!-- Benefits Section -->
+                <div class="dashboard-section subscription-benefits">
+                    <h3><i class="fas fa-star"></i> Your Plan Benefits</h3>
+                    <div class="benefits-card">
+                        <ul class="benefits-list" id="plan-benefits">
+                            <li><i class="fas fa-check-circle"></i> 24/7 Emergency Response</li>
+                            <li><i class="fas fa-check-circle"></i> Priority Dispatch</li>
+                            <li><i class="fas fa-check-circle"></i> Medical Equipment Coverage</li>
+                            <li><i class="fas fa-check-circle"></i> Hospital Transfer Service</li>
+                            <li><i class="fas fa-check-circle"></i> Health Advisory Services</li>
+                            <li><i class="fas fa-check-circle"></i> Family Coverage Options</li>
+                        </ul>
+                    </div>
                 </div>
+
+                <!-- Recent Activities Section -->
+                <div class="dashboard-section recent-activities">
+                    <h3><i class="fas fa-history"></i> Recent Activities</h3>
+                    <div class="activities-card">
+                        <div class="activity-list" id="recent-activities">
+                            <div class="activity-item">
+                                <i class="fas fa-ambulance"></i>
+                                <div class="activity-info">
+                                    <p>Emergency Service Used</p>
+                                    <span class="activity-date">Today, 10:30 AM</span>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <i class="fas fa-credit-card"></i>
+                                <div class="activity-info">
+                                    <p>Monthly Subscription Renewed</p>
+                                    <span class="activity-date">Yesterday, 2:15 PM</span>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <i class="fas fa-hospital"></i>
+                                <div class="activity-info">
+                                    <p>Hospital Transfer Completed</p>
+                                    <span class="activity-date">3 days ago</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Emergency Contacts Section -->
+                <div class="dashboard-section emergency-contacts">
+                    <h3><i class="fas fa-phone-alt"></i> Emergency Contacts</h3>
+                    <div class="contacts-card">
+                        <div class="emergency-number">
+                            <i class="fas fa-ambulance"></i>
+                            <span>24/7 Emergency: +263 776 378 872</span>
+                        </div>
+                        <div class="emergency-number">
+                            <i class="fas fa-phone"></i>
+                            <span>Landline: +263 242 123456</span>
+                        </div>
+                        <div class="contact-actions">
+                            <button class="whatsapp-contact">
+                                <i class="fab fa-whatsapp"></i> WhatsApp Support
+                            </button>
+                            <button class="email-contact">
+                                <i class="fas fa-envelope"></i> Email Support
+                            </button>
+                        </div>
+                        <div class="support-hours">
+                            <p><i class="far fa-clock"></i> Support Hours: 24/7</p>
+                            <p><i class="fas fa-map-marker-alt"></i> Location: Harare, Zimbabwe</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Health Records Section -->
+                <div class="dashboard-section health-records">
+                    <h3><i class="fas fa-notes-medical"></i> Health Information</h3>
+                    <div class="info-card">
+                        <div class="info-item">
+                            <span class="label">Blood Type:</span>
+                            <span class="value" id="blood-type">A+</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Allergies:</span>
+                            <span class="value" id="allergies">None</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Medical Conditions:</span>
+                            <span class="value" id="medical-conditions">None</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Emergency Contact:</span>
+                            <span class="value" id="emergency-contact">John Doe - +263 777 123 456</span>
+                        </div>
+                        <button class="update-health-info-btn">Update Health Information</button>
+                    </div>
+                </div>
+
+                <!-- Dashboard Actions -->
                 <div class="dashboard-actions">
-                    <button class="upgrade-btn" style="display: none;">Upgrade Plan</button>
-                    <button class="renew-btn" style="display: none;">Renew Subscription</button>
-                    <button class="logout-btn">Logout</button>
+                    <button class="action-btn upgrade-btn">
+                        <i class="fas fa-arrow-up"></i> Upgrade Plan
+                    </button>
+                    <button class="action-btn renew-btn">
+                        <i class="fas fa-sync"></i> Renew Subscription
+                    </button>
+                    <button class="action-btn download-btn">
+                        <i class="fas fa-download"></i> Download Records
+                    </button>
+                    <button class="action-btn logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
                 </div>
             </div>
         </div>
@@ -580,15 +729,37 @@
                     <i class="fas fa-chevron-down"></i>
                 </div>
                 <div class="faq-answer">
-                    <p>Our subscription service costs $1 per month and includes:</p>
+                    <p>Our subscription service provides affordable emergency medical coverage based on your location:</p>
+
+                    <h4>Coverage Options:</h4>
+                    <ul>
+                        <li><strong>Local (Within 15KM Radius)</strong>
+                            <ul>
+                                <li>Basic: $1/month - Transport with Technician</li>
+                                <li>Standard: $2/month - Transport + Medical Accessories</li>
+                                <li>Premium: $3/month - Full Service with Life Support</li>
+                            </ul>
+                        </li>
+                        <li><strong>Out of Town (Beyond 15KM)</strong>
+                            <ul>
+                                <li>Basic: $2/month - Transport with Technician</li>
+                                <li>Standard: $3/month - Transport + Medical Accessories</li>
+                                <li>Premium: $4/month - Full Service with Life Support</li>
+                            </ul>
+                        </li>
+                    </ul>
+
+                    <h4>Key Benefits:</h4>
                     <ul>
                         <li>Priority emergency response</li>
-                        <li>Coverage for immediate family members</li>
-                        <li>Real-time emergency alerts</li>
-                        <li>24/7 medical advice hotline</li>
-                        <li>Discounted rates on non-emergency services</li>
-                        <li>Monthly health tips and updates</li>
+                        <li>Family coverage included</li>
+                        <li>24/7 medical advice</li>
+                        <li>Discounted non-emergency services</li>
                     </ul>
+
+                    <p><strong>Getting Started:</strong> Select your area → Choose a plan → Pay via EcoCash → Submit proof → Instant activation</p>
+
+                    <p><strong>Note:</strong> Manage your subscription through your dashboard for renewals and status updates.</p>
                 </div>
             </div>
             <div class="faq-item">
@@ -671,53 +842,6 @@
         <div id="map"></div>
     </section>
 
-    <!-- About Section -->
-    <section id="about" class="about">
-        <div class="about-content">
-            <h2>About Us</h2>
-            <p>At MatMatts Ambulance, your health and safety is our concern. We are committed to providing reliable, professional, and compassionate emergency medical transportation. Our team of experienced paramedics and medical professionals ensures the highest standard of care during transport.</p>
-            <div class="about-images">
-                <div class="about-image">
-                    <img src="media/matmattsambulencecrew.jpg" alt="MatMats Ambulance Crew">
-                </div>
-                <div class="about-image">
-                    <img src="media/matmattsa,bulencecrew2.jpg" alt="MatMats Medical Team">
-                </div>
-                <div class="about-image">
-                    <img src="media/matmattsambulencecrew3.jpg" alt="MatMats Professional Staff">
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Contact Section -->
-    <section id="contact" class="contact">
-        <h2>Contact Us</h2>
-        <div class="contact-container">
-            <div class="contact-info">
-                <div class="info-item">
-                    <i class="fas fa-phone"></i>
-                    <p>Emergency: +263 776 378 872</p>
-                </div>
-                <div class="info-item">
-                    <i class="fas fa-envelope"></i>
-                    <p>matmattsa@gmail.com</p>
-                </div>
-                <div class="info-item">
-                    <i class="fas fa-location-dot"></i>
-                    <p>Chiredzi, Zimbabwe</p>
-                </div>
-            </div>
-            <div class="whatsapp-contact">
-                <a href="https://wa.me/263776378872" class="whatsapp-btn" target="_blank">
-                    <i class="fab fa-whatsapp"></i>
-                    Message us on WhatsApp
-                </a>
-                <p class="whatsapp-note">We're available 24/7 to assist you</p>
-            </div>
-        </div>
-    </section>
-
     <!-- Careers Section -->
     <section id="careers" class="careers-section">
         <h2>Career Opportunities</h2>
@@ -807,546 +931,6 @@
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer>
-        <div class="footer-content">
-            <div class="footer-section">
-                <h3>MatMats Ambulance</h3>
-                <p>At MatMatts Ambulance, your health and safety is our concern.</p>
-            </div>
-            <div class="footer-section">
-                <h3>Quick Links</h3>
-                <ul>
-                    <li><a href="#home">Home</a></li>
-                    <li><a href="#services">Services</a></li>
-                    <li><a href="#about">About</a></li>
-                    <li><a href="#testimonials">Testimonials</a></li>
-                    <li><a href="#contact">Contact</a></li>
-                </ul>
-            </div>
-            <div class="footer-section">
-                <h3>Contact Information</h3>
-                <p>3634 Lion Drive</p>
-                <p>Chiredzi, Zimbabwe</p>
-                <p>Email: matmattsa@gmail.com</p>
-            </div>
-            <div class="footer-section">
-                <h3>Emergency Contact</h3>
-                <p>24/7 Emergency: +263 776 378 872</p>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2025 MatMats Ambulance Services. All rights reserved.</p>
-        </div>
-    </footer>
-
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script src="script.js"></script>
-</body>
-</html>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MatMats Ambulance Services - Emergency Medical Transport Zimbabwe</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-</head>
-<body>
-    <!-- Header Section -->
-    <header>
-        <nav>
-            <div class="logo">
-                <img src="media/matmattslogo.png" alt="MatMats Ambulance Logo" class="logo-img">
-            </div>
-            <div class="mobile-menu-btn">
-                <i class="fas fa-bars"></i>
-            </div>
-            <ul class="nav-links">
-                <li><a href="#home">Home</a></li>
-                <li><a href="#services">Services</a></li>
-                <li><a href="#pricing">Pricing</a></li>
-                <li><a href="#about">About</a></li>
-                <li><a href="#careers">Careers</a></li>
-                <li><a href="#testimonials">Testimonials</a></li>
-                <li><a href="#contact">Contact</a></li>
-                <li><a href="#login" class="login-btn">Login</a></li>
-            </ul>
-            <div class="emergency-contact">
-                <a href="tel:+263776378872" class="emergency-btn">
-                    <i class="fas fa-phone-alt"></i>
-                    <span class="number">+263 776 378 872</span>
-                </a>
-            </div>
-        </nav>
-    </header>
-
-    <!-- Hero Section -->
-    <section id="home" class="hero">
-        <div class="hero-content">
-            <h1>24/7 Emergency Ambulance Services</h1>
-            <p>Fully equipped ambulance services with advanced life support systems and professional medical staff, ready to respond to your emergency needs anytime, anywhere in Zimbabwe. At MatMatts Ambulance, your health and safety is our concern.</p>
-            <div class="hero-buttons">
-                <a href="tel:+263776378872" class="cta-button emergency">Call Now</a>
-                <a href="#subscribe" class="cta-button subscribe">Subscribe Now</a>
-            </div>
-        </div>
-    </section>
-
-    <!-- Video Advertisement Section -->
-    <section class="video-section">
-        <h2>Watch Our Services in Action</h2>
-        <div class="video-container">
-            <video controls poster="media/matmattsambulencecar.jpg">
-                <source src="media/matmattsadvert.mp4" type="video/mp4">
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </section>
-
-    <!-- Statistics Section -->
-    <section class="statistics">
-        <div class="stats-container">
-            <div class="stat-item">
-                <i class="fas fa-ambulance"></i>
-                <div class="service-title">24/7 Emergency Response</div>
-                <p>Urgent Care Transportation</p>
-            </div>
-            <div class="stat-item">
-                <i class="fas fa-heartbeat"></i>
-                <div class="service-title">Critical Care Transport</div>
-                <p>Expert Life Support for Critical Patients</p>
-            </div>
-            <div class="stat-item">
-                <i class="fas fa-truck-medical"></i>
-                <div class="service-title">Life Threatening Emergency</div>
-                <p>Rapid Ambulance Services</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Services Section -->
-    <section id="services" class="services-section">
-        <h2>Our Services</h2>
-        <p class="services-intro">At MatMatts Ambulance, we provide swift and professional emergency response services for road traffic accidents and other health-threatening cases. Our dedicated team is available 24/7 to ensure your safety and well-being.</p>
-        <div class="services-grid">
-            <div class="service-card">
-                <img src="media/matmattsambulencecar.jpg" alt="Emergency Transport Service" class="service-card-image">
-                <h3>Emergency Transport</h3>
-                <p>Professional 24/7 emergency medical transportation with our fully equipped ambulances and highly trained paramedics for immediate response to accidents and medical emergencies.</p>
-            </div>
-            <div class="service-card">
-                <img src="media/matmattsambulencecrew.jpg" alt="Hospital Transfer Service" class="service-card-image">
-                <h3>Hospital Transfer</h3>
-                <p>Safe and comfortable inter-facility transfers with our experienced medical staff providing continuous care and monitoring throughout the journey.</p>
-            </div>
-            <div class="service-card">
-                <img src="media/matmattsambulencecrew3.jpg" alt="Medical Escort Service" class="service-card-image">
-                <h3>Safety & Health Training</h3>
-                <p>Expert safety and health training programs delivered by our professional medical team. Comprehensive courses for students, domestic workers, and industry staff.</p>
-            </div>
-            <div class="service-card">
-                <img src="media/ambulencecrew.jpg" alt="Medical Response Team" class="service-card-image">
-                <h3>Medical Response Team</h3>
-                <p>Our dedicated team of medical professionals is available 24/7, equipped with advanced life support capabilities and ready to respond to any medical emergency.</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Pricing Section -->
-    <section id="pricing" class="pricing-section">
-        <h2>Our Pricing</h2>
-        <div class="pricing-grid">
-            <div class="pricing-card local">
-                <h3>Chiredzi Local Services</h3>
-                <div class="price-item">
-                    <span class="price">$10</span>
-                    <p>Up to 10km within Chiredzi</p>
-                </div>
-                <div class="price-item">
-                    <span class="price">$20</span>
-                    <p>Up to 15km within Chiredzi</p>
-                </div>
-            </div>
-            <div class="pricing-card destinations">
-                <h3>Special Destinations</h3>
-                <div class="price-item">
-                    <span class="price">$40</span>
-                    <p>To/From Mukwasini</p>
-                </div>
-                <div class="price-item">
-                    <span class="price">$300</span>
-                    <p>To/From Masvingo</p>
-                </div>
-            </div>
-            <div class="pricing-card distance">
-                <h3>Outside Chiredzi</h3>
-                <div class="price-item">
-                    <span class="price">$1.10</span>
-                    <p>Per Kilometer</p>
-                    <small>For distances beyond 15km from Chiredzi</small>
-                </div>
-            </div>
-        </div>
-        <div class="pricing-note">
-            <p>Base Ambulance Fee: $10</p>
-            <p>Contact us for custom quotes and special arrangements</p>
-            <div class="emergency-contact-info">
-                <p>Emergency Hotline: <strong>+263 776 378 872</strong></p>
-                <p>Ambulance Registration: <strong>AFVA 2896</strong></p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Subscription Section -->
-    <section id="subscription" class="subscription-section">
-        <h2>Subscribe for Emergency Preparedness</h2>
-        <p class="subscription-intro">Stay prepared for emergencies with our affordable subscription service. For just $1 per month, get priority emergency response and access to our 24/7 medical assistance. Don't wait for an emergency to happen - subscribe today for peace of mind.</p>
-        <div class="subscription-container">
-            <div class="subscription-card">
-                <img src="media/matmattsflyerpng.png" alt="MatMats Ambulance Subscription Flyer" class="subscription-flyer">
-                <button class="subscribe-btn">Subscribe Now</button>
-                <div id="payment-form" style="display: none;">
-                    <div class="ecocash-payment">
-                        <p class="payment-info">Pay $1 using EcoCash:</p>
-                        <div class="ecocash-number">
-                            <i class="fas fa-qrcode"></i>
-                            <span>Merchant Code: 247911</span>
-                        </div>
-                        <div class="payment-steps">
-                            <p>How to pay:</p>
-                            <ol>
-                                <li>Dial <strong>*151*2*247911*1#</strong></li>
-                                <li>Enter your EcoCash PIN</li>
-                                <li>When you receive the confirmation SMS, <strong>copy the Transaction ID</strong></li>
-                            </ol>
-                        </div>
-                        <div class="reference-number">
-                            <label for="ecocash-reference">
-                                <i class="fas fa-paste"></i>
-                                Paste Transaction ID from SMS:
-                                <span class="id-format">(Format: XX1234567X12)</span>
-                            </label>
-                            <div class="reference-input-group">
-                                <input type="text" 
-                                       id="ecocash-reference" 
-                                       placeholder="Paste your Transaction ID here" 
-                                       pattern="[A-Z0-9]{12}" 
-                                       required>
-                                <div class="input-help">Transaction ID is usually 12 characters long</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Login Modal -->
-    <div id="loginModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>Login to Your Account</h2>
-            <form class="login-form">
-                <div class="form-group">
-                    <input type="email" placeholder="Email" required>
-                </div>
-                <div class="form-group">
-                    <input type="password" placeholder="Password" required>
-                </div>
-                <button type="submit" class="submit-btn">Login</button>
-            </form>
-            <div class="auth-options">
-                <p class="forgot-password">Forgot Password?</p>
-                <p class="register-link">Don't have an account? <a href="#" id="showRegister">Register</a></p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Dashboard Modal -->
-    <div id="dashboardModal" class="modal">
-        <div class="modal-content dashboard-modal">
-            <span class="close">&times;</span>
-            <h2>My Dashboard</h2>
-            <div class="dashboard-container">
-                <div class="subscription-status">
-                    <h3>Subscription Status</h3>
-                    <div class="status-card">
-                        <div class="status-header">
-                            <i class="fas fa-check-circle"></i>
-                            <span class="status-label">Active</span>
-                        </div>
-                        <div class="subscription-details">
-                            <p><strong>Plan:</strong> Monthly Emergency Service</p>
-                            <p><strong>Amount:</strong> $1/month</p>
-                            <p><strong>Next Billing:</strong> <span id="nextBillingDate">Loading...</span></p>
-                            <p><strong>Member Since:</strong> <span id="memberSince">Loading...</span></p>
-                        </div>
-                    </div>
-                </div>
-                <div class="subscription-benefits">
-                    <h3>Your Benefits</h3>
-                    <ul class="benefits-list">
-                        <li><i class="fas fa-ambulance"></i> Priority Emergency Response</li>
-                        <li><i class="fas fa-user-shield"></i> Coverage for Immediate Family</li>
-                        <li><i class="fas fa-bell"></i> Real-time Emergency Alerts</li>
-                        <li><i class="fas fa-phone-alt"></i> 24/7 Medical Advice Hotline</li>
-                        <li><i class="fas fa-percent"></i> Discounted Non-emergency Services</li>
-                    </ul>
-                </div>
-                <div class="dashboard-actions">
-                    <button class="renew-btn">Renew Subscription</button>
-                    <button class="logout-btn">Logout</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Register Modal -->
-    <div id="registerModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>Create New Account</h2>
-            <form class="register-form">
-                <div class="form-group">
-                    <input type="text" placeholder="Full Name" required>
-                </div>
-                <div class="form-group">
-                    <input type="email" placeholder="Email" required>
-                </div>
-                <div class="form-group">
-                    <input type="password" placeholder="Password" required>
-                </div>
-                <div class="form-group">
-                    <input type="password" placeholder="Confirm Password" required>
-                </div>
-                <button type="submit" class="submit-btn">Register</button>
-            </form>
-            <div class="auth-options">
-                <p>Already have an account? <a href="#" id="showLogin">Login</a></p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Testimonials Section -->
-    <section id="testimonials" class="testimonials">
-        <h2>What Our Clients Say</h2>
-        <div class="testimonials-container">
-            <div class="testimonial-card">
-                <div class="testimonial-content">
-                    <i class="fas fa-quote-left"></i>
-                    <p>"MatMats Ambulance provided exceptional service during our emergency. The team was professional, arrived quickly, and their care was outstanding."</p>
-                    <div class="rating">
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <span class="rating-text">5.0</span>
-                    </div>
-                </div>
-                <div class="testimonial-author">
-                    <div>
-                        <h4>Shantel Matope</h4>
-                        <p>Emergency Transport Client</p>
-                    </div>
-                </div>
-            </div>
-            <div class="testimonial-card">
-                <div class="testimonial-content">
-                    <i class="fas fa-quote-left"></i>
-                    <p>"The medical staff was highly professional and made my hospital transfer comfortable and safe. Their attention to detail was impressive."</p>
-                    <div class="rating">
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star-half-alt"></i>
-                        <span class="rating-text">4.5</span>
-                    </div>
-                </div>
-                <div class="testimonial-author">
-                    <div>
-                        <h4>Abie Chauke</h4>
-                        <p>Hospital Transfer Client</p>
-                    </div>
-                </div>
-            </div>
-            <div class="testimonial-card">
-                <div class="testimonial-content">
-                    <i class="fas fa-quote-left"></i>
-                    <p>"Their subscription service gives me peace of mind. When we needed them, they responded quickly and professionally. Highly recommended!"</p>
-                    <div class="rating">
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <span class="rating-text">5.0</span>
-                    </div>
-                </div>
-                <div class="testimonial-author">
-                    <div>
-                        <h4>Tendai Moyo</h4>
-                        <p>Subscription Member</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="overall-rating">
-            <h3>Overall Rating</h3>
-            <div class="rating">
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star-half-alt"></i>
-                <span class="rating-text">4.8 out of 5</span>
-            </div>
-            <p>Based on 150+ client reviews</p>
-        </div>
-    </section>
-
-    <!-- FAQ Section -->
-    <section id="faq" class="faq">
-        <h2>Frequently Asked Questions</h2>
-        <div class="faq-container">
-            <div class="faq-item">
-                <div class="faq-question">
-                    <h3>What areas do you service?</h3>
-                    <i class="fas fa-chevron-down"></i>
-                </div>
-                <div class="faq-answer">
-                    <p>We provide nationwide coverage with our base in Chiredzi, Zimbabwe. Our services extend to all major cities and rural areas, ensuring comprehensive medical transport coverage throughout the country.</p>
-                </div>
-            </div>
-            <div class="faq-item">
-                <div class="faq-question">
-                    <h3>How quickly can you respond to emergencies?</h3>
-                    <i class="fas fa-chevron-down"></i>
-                </div>
-                <div class="faq-answer">
-                    <p>Our response time varies based on location, but we aim to reach urban areas within 15-30 minutes and rural areas within 30-60 minutes. For subscribers, we provide priority response times. Our 24/7 dispatch center ensures immediate response to all emergency calls.</p>
-                </div>
-            </div>
-            <div class="faq-item">
-                <div class="faq-question">
-                    <h3>What types of medical transport do you offer?</h3>
-                    <i class="fas fa-chevron-down"></i>
-                </div>
-                <div class="faq-answer">
-                    <p>We offer a comprehensive range of services including:</p>
-                    <ul>
-                        <li>Emergency medical transport</li>
-                        <li>Inter-hospital transfers</li>
-                        <li>Medical escort services</li>
-                        <li>Non-emergency medical transport</li>
-                        <li>Special events medical coverage</li>
-                        <li>Long-distance medical transport</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="faq-item">
-                <div class="faq-question">
-                    <h3>How does the subscription service work?</h3>
-                    <i class="fas fa-chevron-down"></i>
-                </div>
-                <div class="faq-answer">
-                    <p>Our subscription service costs $1 per month and includes:</p>
-                    <ul>
-                        <li>Priority emergency response</li>
-                        <li>Coverage for immediate family members</li>
-                        <li>Real-time emergency alerts</li>
-                        <li>24/7 medical advice hotline</li>
-                        <li>Discounted rates on non-emergency services</li>
-                        <li>Monthly health tips and updates</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="faq-item">
-                <div class="faq-question">
-                    <h3>What medical equipment is available in your ambulances?</h3>
-                    <i class="fas fa-chevron-down"></i>
-                </div>
-                <div class="faq-answer">
-                    <p>Our ambulances are fully equipped with:</p>
-                    <ul>
-                        <li>Advanced life support equipment</li>
-                        <li>Cardiac monitors and defibrillators</li>
-                        <li>Oxygen therapy systems</li>
-                        <li>Emergency medication supplies</li>
-                        <li>Patient monitoring devices</li>
-                        <li>Specialized transport equipment</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="faq-item">
-                <div class="faq-question">
-                    <h3>What payment methods do you accept?</h3>
-                    <i class="fas fa-chevron-down"></i>
-                </div>
-                <div class="faq-answer">
-                    <p>We accept various payment methods including:</p>
-                    <ul>
-                        <li>Major credit and debit cards</li>
-                        <li>Mobile money transfers</li>
-                        <li>Bank transfers</li>
-                        <li>Cash payments</li>
-                        <li>Medical insurance (for covered services)</li>
-                    </ul>
-                    <p>For emergency services, payment can be arranged after the service is provided.</p>
-                </div>
-            </div>
-            <div class="faq-item">
-                <div class="faq-question">
-                    <h3>What should I do while waiting for the ambulance?</h3>
-                    <i class="fas fa-chevron-down"></i>
-                </div>
-                <div class="faq-answer">
-                    <p>While waiting for our ambulance:</p>
-                    <ul>
-                        <li>Stay calm and reassure the patient</li>
-                        <li>Keep the patient still unless they're in immediate danger</li>
-                        <li>Clear a path for the ambulance crew</li>
-                        <li>Gather any relevant medical documents</li>
-                        <li>Have someone ready to direct the crew to the patient</li>
-                        <li>Follow any instructions given by our emergency dispatch team</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="faq-item">
-                <div class="faq-question">
-                    <h3>Are your medical staff certified?</h3>
-                    <i class="fas fa-chevron-down"></i>
-                </div>
-                <div class="faq-answer">
-                    <p>Yes, all our medical staff are fully certified and experienced professionals. Our team includes:</p>
-                    <ul>
-                        <li>Licensed paramedics</li>
-                        <li>Emergency Medical Technicians (EMTs)</li>
-                        <li>Registered nurses</li>
-                        <li>Emergency care specialists</li>
-                    </ul>
-                    <p>Our staff regularly undergo training and certification updates to maintain the highest standards of care.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Map Section -->
-    <section class="map-section">
-        <h2>Our Service Areas</h2>
-        <div class="location-info">
-            <p><strong>Base Location:</strong> 3634 Lion Drive, Chiredzi, Zimbabwe</p>
-            <p><strong>Service Coverage:</strong> Nationwide</p>
-        </div>
-        <div id="map"></div>
-    </section>
-
     <!-- About Section -->
     <section id="about" class="about">
         <div class="about-content">
@@ -1371,18 +955,8 @@
         <h2>Contact Us</h2>
         <div class="contact-container">
             <div class="contact-info">
-                <div class="info-item">
-                    <i class="fas fa-phone"></i>
-                    <p>Emergency: +263 776 378 872</p>
-                </div>
-                <div class="info-item">
-                    <i class="fas fa-envelope"></i>
-                    <p>matmattsa@gmail.com</p>
-                </div>
-                <div class="info-item">
-                    <i class="fas fa-location-dot"></i>
-                    <p>3634 Lion Drive, Chiredzi, Zimbabwe</p>
-                </div>
+                <span><i class="fas fa-phone"></i> Mobile: +263 776 378 872</span>
+                <span><i class="fas fa-envelope"></i> Email: matmattsa@gmail.com</span>
             </div>
             <div class="whatsapp-contact">
                 <a href="https://wa.me/263776378872" class="whatsapp-btn" target="_blank">
@@ -1390,95 +964,6 @@
                     Message us on WhatsApp
                 </a>
                 <p class="whatsapp-note">We're available 24/7 to assist you</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Careers Section -->
-    <section id="careers" class="careers-section">
-        <h2>Career Opportunities</h2>
-        <div class="careers-container">
-            <div class="vacancies">
-                <h3>Current Vacancies</h3>
-                <div class="vacancy-card">
-                    <h4>Emergency Medical Technician (EMT)</h4>
-                    <p class="vacancy-type"><i class="fas fa-clock"></i> Full Time</p>
-                    <p class="vacancy-location"><i class="fas fa-location-dot"></i> Chiredzi, Zimbabwe</p>
-                    <p class="vacancy-description">We are seeking qualified EMTs to join our growing team. The ideal candidate will have experience in emergency medical services and a passion for helping others.</p>
-                    <ul class="requirements">
-                        <li>Valid EMT certification</li>
-                        <li>Clean driving record</li>
-                        <li>Excellent communication skills</li>
-                        <li>Physical fitness and stamina</li>
-                    </ul>
-                </div>
-
-                <div class="vacancy-card">
-                    <h4>Unpaid Internship Program</h4>
-                    <p class="vacancy-type"><i class="fas fa-clock"></i> Flexible Hours</p>
-                    <p class="vacancy-location"><i class="fas fa-location-dot"></i> Chiredzi, Zimbabwe</p>
-                    <p class="vacancy-description">We offer valuable learning opportunities through our unpaid internship program. Gain hands-on experience in emergency medical services and develop essential skills under professional guidance.</p>
-                    <ul class="requirements">
-                        <li>Strong interest in emergency medical services</li>
-                        <li>Willingness to learn and take initiative</li>
-                        <li>Reliable and committed attitude</li>
-                        <li>Ability to work in a fast-paced environment</li>
-                        <li>Currently pursuing or completed relevant education</li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="application-form">
-                <h3>Apply Now</h3>
-                <form id="job-application" class="job-application-form">
-                    <div class="form-group">
-                        <label for="full-name">Full Name *</label>
-                        <input type="text" id="full-name" name="full-name" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="email">Email Address *</label>
-                        <input type="email" id="email" name="email" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="phone">Phone Number *</label>
-                        <input type="tel" id="phone" name="phone" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="position">Position Applying For *</label>
-                        <select id="position" name="position" required>
-                            <option value="">Select a position</option>
-                            <option value="emt">Emergency Medical Technician (EMT)</option>
-                            <option value="intern">Unpaid Internship</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="experience">Years of Experience *</label>
-                        <input type="number" id="experience" name="experience" min="0" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="cv-upload">Upload CV (PDF format) *</label>
-                        <div class="file-upload">
-                            <input type="file" id="cv-upload" name="cv" accept=".pdf" required>
-                            <label for="cv-upload" class="file-upload-label">
-                                <i class="fas fa-cloud-upload-alt"></i>
-                                <span>Choose File</span>
-                            </label>
-                            <div class="file-name">No file chosen</div>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="cover-letter">Cover Letter</label>
-                        <textarea id="cover-letter" name="cover-letter" rows="5" placeholder="Tell us why you would be a great fit for this position"></textarea>
-                    </div>
-
-                    <button type="submit" class="submit-application">Submit Application</button>
-                </form>
             </div>
         </div>
     </section>
@@ -1518,5 +1003,12 @@
 
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="script.js"></script>
+
+    <!-- Floating WhatsApp Button -->
+    <a href="https://wa.me/263776378872" class="floating-whatsapp" target="_blank">
+        <i class="fab fa-whatsapp"></i>
+        <span class="whatsapp-text">Chat with us</span>
+    </a>
+
 </body>
 </html>
