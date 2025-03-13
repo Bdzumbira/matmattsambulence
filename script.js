@@ -1,3 +1,131 @@
+// Modal functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const loginModal = document.getElementById('loginModal');
+    const registerModal = document.getElementById('registerModal');
+    const dashboardModal = document.getElementById('dashboardModal');
+    const loginBtn = document.querySelector('.login-btn');
+    const showRegisterBtn = document.getElementById('showRegister');
+    const showLoginBtn = document.getElementById('showLogin');
+    const closeBtns = document.querySelectorAll('.close');
+
+    // Function to show modal
+    function showModal(modal) {
+        if (modal) {
+            modal.style.display = 'block';
+        }
+    }
+
+    // Function to hide modal
+    function hideModal(modal) {
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    // Login button click
+    if (loginBtn) {
+        loginBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const user = auth.currentUser;
+            if (user) {
+                // User is logged in, show dashboard
+                const dashboardModal = document.getElementById('dashboardModal');
+                if (dashboardModal) {
+                    showModal(dashboardModal);
+                    // Force refresh dashboard info
+                    updateDashboardInfo(user);
+                }
+            } else {
+                // User is not logged in, show login modal
+            showModal(loginModal);
+            }
+        });
+    }
+
+    // Show register modal
+    if (showRegisterBtn) {
+        showRegisterBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            hideModal(loginModal);
+            showModal(registerModal);
+        });
+    }
+
+    // Show login modal
+    if (showLoginBtn) {
+        showLoginBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            hideModal(registerModal);
+            showModal(loginModal);
+        });
+    }
+
+    // Close button functionality
+    closeBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            hideModal(loginModal);
+            hideModal(registerModal);
+            hideModal(dashboardModal);
+        });
+    });
+
+    // Close modal when clicking outside
+    window.addEventListener('click', function(e) {
+        if (e.target === loginModal) {
+            hideModal(loginModal);
+        }
+        if (e.target === registerModal) {
+            hideModal(registerModal);
+        }
+        if (e.target === dashboardModal) {
+            hideModal(dashboardModal);
+        }
+    });
+
+    // Handle login form submission
+    const loginForm = document.querySelector('.login-form');
+    if (loginForm) {
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = loginForm.querySelector('input[type="email"]').value;
+            const password = loginForm.querySelector('input[type="password"]').value;
+            
+            try {
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                console.log('Login successful:', userCredential.user.email);
+                
+                // Hide login modal
+                hideModal(loginModal);
+
+                // Record login activity
+                await database.ref('activities/' + userCredential.user.uid).push({
+                    type: 'login',
+                    description: 'User logged in',
+                    icon: 'fa-sign-in-alt',
+                    timestamp: new Date().toISOString()
+                });
+
+                // Update last login time
+                await database.ref('users/' + userCredential.user.uid).update({
+                    lastLogin: new Date().toISOString()
+                });
+
+                // Direct user to appropriate dashboard
+                if (email.toLowerCase() === 'bryandzumbira@gmail.com') {
+                    showAdminDashboard(userCredential.user);
+                } else {
+                    showUserDashboard(userCredential.user);
+                }
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                alert('Login failed: ' + error.message);
+            }
+        });
+    }
+});
+
 // Firebase Configuration
 const firebaseConfig = {
     apiKey: "AIzaSyA-PeH-6MpagKf1hzSanIuHE4RBvSv057U",
@@ -32,14 +160,45 @@ if (!firebase.apps.length) {
     console.log('Firebase is initialized');
 }
 
-// Check authentication state
+// Firebase auth state change listener
 auth.onAuthStateChanged((user) => {
     if (user) {
         // User is signed in
-        updateUIForLoggedInUser(user);
+        console.log('User is signed in:', user.email);
+        
+        // Update UI elements
+        const loginBtn = document.querySelector('.login-btn');
+        if (loginBtn) {
+            loginBtn.textContent = 'My Account';
+        }
+        
+        // Update subscription buttons
+        const subscribeButtons = document.querySelectorAll('.subscribe-btn');
+        subscribeButtons.forEach(btn => {
+            btn.textContent = 'Subscribe Now';
+        });
+
+        // Handle "My Account" button click
+        if (loginBtn) {
+            loginBtn.onclick = (e) => {
+                e.preventDefault();
+                if (user.email.toLowerCase() === 'bryandzumbira@gmail.com') {
+                    showAdminDashboard(user);
+                } else {
+                    showUserDashboard(user);
+                }
+            };
+        }
     } else {
         // User is signed out
+        console.log('User is signed out');
         updateUIForLoggedOutUser();
+        
+        // Hide all dashboards
+        const dashboardModal = document.getElementById('dashboardModal');
+        const adminDashboardModal = document.getElementById('adminDashboardModal');
+        if (dashboardModal) hideModal(dashboardModal);
+        if (adminDashboardModal) adminDashboardModal.remove();
     }
 });
 
@@ -105,7 +264,19 @@ window.addEventListener('click', (e) => {
 if (loginBtn) {
     loginBtn.addEventListener('click', (e) => {
         e.preventDefault();
+        const user = auth.currentUser;
+        if (user) {
+            // User is logged in, show dashboard
+            const dashboardModal = document.getElementById('dashboardModal');
+            if (dashboardModal) {
+                showModal(dashboardModal);
+                // Force refresh dashboard info
+                updateDashboardInfo(user);
+            }
+        } else {
+            // User is not logged in, show login modal
         showModal(loginModal);
+        }
     });
 }
 
@@ -122,73 +293,329 @@ showLoginBtn.addEventListener('click', (e) => {
     showModal(loginModal);
 });
 
-// Handle login form submission
-document.addEventListener('DOMContentLoaded', () => {
-    const loginForm = document.querySelector('.login-form');
-    if (loginForm) {
-        loginForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const submitBtn = this.querySelector('.submit-btn');
-            submitBtn.textContent = 'Logging in...';
-            submitBtn.disabled = true;
-
-            const email = this.querySelector('input[type="email"]').value;
-            const password = this.querySelector('input[type="password"]').value;
-
-            auth.signInWithEmailAndPassword(email, password)
-                .then((userCredential) => {
-                    hideModal(loginModal);
-                    // Update UI for logged in user
-                    updateUIForLoggedInUser(userCredential.user);
-                    // Check if user is admin
-                    return database.ref('admins').child(userCredential.user.uid).once('value')
-                        .then(snapshot => {
-                            if (snapshot.exists()) {
-                                showAdminDashboard(userCredential.user);
-                            } else {
-                                showUserDashboard(userCredential.user);
-                            }
-                        });
-                })
-                .catch((error) => {
-                    alert('Login failed: ' + error.message);
-                })
-                .finally(() => {
-                    submitBtn.textContent = 'Login';
-                    submitBtn.disabled = false;
-                });
+// Handle logout
+logoutBtn.addEventListener('click', async () => {
+    try {
+        await auth.signOut();
+        // Hide all possible dashboard modals
+        const dashboardModal = document.getElementById('dashboardModal');
+        const adminDashboardModal = document.getElementById('adminDashboardModal');
+        if (dashboardModal) hideModal(dashboardModal);
+        if (adminDashboardModal) adminDashboardModal.remove();
+        
+        // Update UI for logged out state without showing login modal
+        const loginBtn = document.querySelector('.login-btn');
+        if (loginBtn) {
+            loginBtn.textContent = 'Login';
+        }
+        
+        // Update subscription buttons
+        const subscribeButtons = document.querySelectorAll('.subscribe-btn');
+        subscribeButtons.forEach(btn => {
+            btn.textContent = 'Login to Subscribe';
         });
+
+        console.log('User signed out successfully');
+    } catch (error) {
+        console.error('Logout error:', error);
+        alert('Logout failed: ' + error.message);
     }
 });
 
-// Handle logout
-logoutBtn.addEventListener('click', () => {
-    auth.signOut().then(() => {
-        hideModal(dashboardModal);
-        updateUIForLoggedOutUser();
-    });
-});
-
 // Handle subscription renewal
-renewBtn.addEventListener('click', () => {
-    // Here you would typically handle renewal logic
-    alert('Redirecting to renewal payment...');
-});
+if (renewBtn) {
+    renewBtn.addEventListener('click', async () => {
+        const user = auth.currentUser;
+        if (!user) {
+            alert('Please login to renew your subscription');
+            showModal(loginModal);
+            return;
+        }
+
+        try {
+            // Get current subscription data
+            const userRef = database.ref('users/' + user.uid);
+            const snapshot = await userRef.once('value');
+            const userData = snapshot.val();
+            
+            if (!userData || !userData.subscription || !userData.subscription.plan) {
+                alert('No active subscription found. Please subscribe to a plan first.');
+                return;
+            }
+
+            // Show payment form with current plan details
+            const paymentForm = document.getElementById('payment-form');
+            if (paymentForm) {
+                // Get current plan details
+                const currentPlan = userData.subscription.plan.toLowerCase().split(' ')[0]; // Extract 'basic', 'standard', or 'premium'
+                const planButton = document.querySelector(`.subscribe-btn[data-plan="${currentPlan}"]`);
+                
+                if (planButton) {
+                    handleSubscribeButtonClick(planButton);
+                } else {
+                    alert('Error loading plan details. Please try again.');
+                }
+            }
+        } catch (error) {
+            console.error('Error renewing subscription:', error);
+            alert('Failed to process renewal: ' + error.message);
+        }
+    });
+}
+
+// Handle plan upgrade
+const upgradeBtn = document.querySelector('.upgrade-btn');
+if (upgradeBtn) {
+    upgradeBtn.addEventListener('click', async () => {
+        const user = auth.currentUser;
+        if (!user) {
+            alert('Please login to upgrade your subscription');
+            showModal(loginModal);
+            return;
+        }
+
+        try {
+            // Get current subscription data
+            const userRef = database.ref('users/' + user.uid);
+            const snapshot = await userRef.once('value');
+            const userData = snapshot.val();
+            
+            if (!userData || !userData.subscription || !userData.subscription.plan) {
+                alert('No active subscription found. Please subscribe to a plan first.');
+                return;
+            }
+
+            // Get current plan level
+            const currentPlan = userData.subscription.plan.toLowerCase().split(' ')[0]; // Extract 'basic', 'standard', or 'premium'
+            
+            // Determine next plan level
+            let nextPlan;
+            switch(currentPlan) {
+                case 'basic':
+                    nextPlan = 'standard';
+                    break;
+                case 'standard':
+                    nextPlan = 'premium';
+                    break;
+                case 'premium':
+                    alert('You are already on our highest plan tier.');
+                    return;
+                default:
+                    nextPlan = 'basic';
+            }
+
+            // Find and click the button for the next plan
+            const nextPlanButton = document.querySelector(`.subscribe-btn[data-plan="${nextPlan}"]`);
+            if (nextPlanButton) {
+                // Ensure subscription section is visible
+                const subscriptionSection = document.querySelector('.subscription-section');
+                if (subscriptionSection) {
+                    subscriptionSection.scrollIntoView({ behavior: 'smooth' });
+                }
+                
+                // Show the appropriate tab (local/outoftown) based on current subscription
+                const isOutOfTown = userData.subscription.coverage.toLowerCase().includes('outside');
+                const tabToClick = document.querySelector(`.tab-btn[data-tab="${isOutOfTown ? 'outoftown' : 'local'}"]`);
+                if (tabToClick && !tabToClick.classList.contains('active')) {
+                    tabToClick.click();
+                }
+
+                // Trigger subscription process for the new plan
+                handleSubscribeButtonClick(nextPlanButton);
+            } else {
+                alert('Error loading upgrade options. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error upgrading plan:', error);
+            alert('Failed to process upgrade: ' + error.message);
+        }
+    });
+}
 
 // Update dashboard information
-function updateDashboardInfo() {
-    // Get elements
-    const nextBillingDate = document.getElementById('nextBillingDate');
-    const memberSince = document.getElementById('memberSince');
+function updateDashboardInfo(user) {
+    if (!user) {
+        console.error('No user provided to updateDashboardInfo');
+        return;
+    }
 
-    // Calculate next billing date (one month from now)
-    const nextBilling = new Date();
-    nextBilling.setMonth(nextBilling.getMonth() + 1);
-    nextBillingDate.textContent = nextBilling.toLocaleDateString();
+    // Get user data from Firebase
+    database.ref('users/' + user.uid).once('value')
+        .then(snapshot => {
+            const userData = snapshot.val() || {};
+            const healthData = userData.health || {};
+            const subscriptionData = userData.subscription || {
+                plan: 'No active plan',
+                status: 'inactive'
+            };
+            
+            // Helper function to safely update element text content
+            const safelyUpdateElement = (id, value, defaultValue = 'Not set') => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.textContent = value || defaultValue;
+                } else {
+                    console.warn(`Element with id '${id}' not found`);
+                }
+            };
 
-    // Set member since date (current date for demo)
-    const membershipDate = new Date();
-    memberSince.textContent = membershipDate.toLocaleDateString();
+            // Update Personal Information
+            safelyUpdateElement('user-name', userData.name || user.displayName);
+            safelyUpdateElement('user-email', userData.email || user.email);
+            safelyUpdateElement('user-phone', userData.phoneNumber);
+            safelyUpdateElement('user-address', userData.address);
+            
+            // Set member since date
+            const memberSinceDate = userData.createdAt ? new Date(userData.createdAt) : new Date();
+            safelyUpdateElement('member-since', memberSinceDate.toLocaleDateString());
+
+            // Update subscription status fields
+            safelyUpdateElement('current-plan', subscriptionData.plan);
+            safelyUpdateElement('monthly-fee', subscriptionData.fee ? `$${subscriptionData.fee}` : '$0.00');
+            safelyUpdateElement('coverage-area', subscriptionData.coverage, 'None');
+            safelyUpdateElement('next-payment', 
+                subscriptionData.nextPaymentDate ? 
+                new Date(subscriptionData.nextPaymentDate).toLocaleDateString() : 'N/A'
+            );
+            safelyUpdateElement('auto-renewal', subscriptionData.autoRenewal ? 'Enabled' : 'Disabled');
+
+            // Update health information fields
+            safelyUpdateElement('blood-type', healthData.bloodType);
+            safelyUpdateElement('allergies', healthData.allergies, 'None specified');
+            safelyUpdateElement('medical-conditions', healthData.conditions, 'None specified');
+            safelyUpdateElement('emergency-contact', healthData.emergencyContact);
+
+            // Update subscription status visual indicators
+            const subscriptionStatus = document.querySelector('.subscription-status');
+            if (subscriptionStatus) {
+                if (subscriptionData.status === 'active') {
+                    subscriptionStatus.classList.add('active');
+                    subscriptionStatus.classList.remove('inactive');
+                } else {
+                    subscriptionStatus.classList.add('inactive');
+                    subscriptionStatus.classList.remove('active');
+                }
+            }
+
+            // Get recent activities
+            return database.ref('activities/' + user.uid)
+                .orderByChild('timestamp')
+                .limitToLast(3)
+                .once('value');
+        })
+        .then(activitiesSnapshot => {
+            const recentActivities = document.getElementById('recent-activities');
+            if (recentActivities) {
+                let activitiesHtml = '';
+                
+                if (!activitiesSnapshot.exists()) {
+                    // Show account creation as first activity if no other activities
+                    activitiesHtml = `
+                        <div class="activity-item">
+                            <i class="fas fa-user-plus"></i>
+                            <div class="activity-info">
+                                <p>Account Created</p>
+                                <span class="activity-date">${new Date().toLocaleDateString()}</span>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // Add all activities
+                    const activities = [];
+                    activitiesSnapshot.forEach(child => {
+                        activities.push({
+                            ...child.val(),
+                            id: child.key
+                        });
+                    });
+                    
+                    // Sort activities by timestamp in descending order
+                    activities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    
+                    activitiesHtml = activities.map(activity => `
+                        <div class="activity-item">
+                            <i class="fas ${activity.icon || getActivityIcon(activity.type)}"></i>
+                            <div class="activity-info">
+                                <p>${activity.description}</p>
+                                <span class="activity-date">${new Date(activity.timestamp).toLocaleDateString()}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+                
+                recentActivities.innerHTML = activitiesHtml;
+            }
+
+            // Update benefits list based on subscription plan
+            const benefitsList = document.getElementById('plan-benefits');
+            if (benefitsList) {
+                const currentPlan = document.getElementById('current-plan')?.textContent || '';
+                let benefits = [];
+                
+                switch(currentPlan.toLowerCase()) {
+                    case 'premium package':
+                    case 'premium plan':
+                        benefits = [
+                            '24/7 Emergency Response',
+                            'Priority Dispatch',
+                            'Medical Equipment Coverage',
+                            'Hospital Transfer Service',
+                            'Health Advisory Services',
+                            'Family Coverage Options',
+                            'International Coverage',
+                            'VIP Service'
+                        ];
+                        break;
+                    case 'standard package':
+                    case 'standard plan':
+                        benefits = [
+                            '24/7 Emergency Response',
+                            'Priority Dispatch',
+                            'Medical Equipment Coverage',
+                            'Hospital Transfer Service',
+                            'Health Advisory Services',
+                            'Family Coverage Options'
+                        ];
+                        break;
+                    case 'basic package':
+                    case 'basic plan':
+                        benefits = [
+                            '24/7 Emergency Response',
+                            'Medical Equipment Coverage',
+                            'Hospital Transfer Service',
+                            'Health Advisory Services'
+                        ];
+                        break;
+                    default:
+                        benefits = [
+                            '24/7 Emergency Response',
+                            'Medical Equipment Coverage',
+                            'Hospital Transfer Service'
+                        ];
+                }
+
+                benefitsList.innerHTML = benefits.map(benefit => `
+                    <li><i class="fas fa-check-circle"></i> ${benefit}</li>
+                `).join('');
+            }
+        })
+        .catch(error => {
+            console.error('Error updating dashboard:', error);
+            alert('Error loading dashboard information. Please try refreshing the page.');
+        });
+}
+
+// Helper function to get activity icons
+function getActivityIcon(activityType) {
+    const icons = {
+        'subscription': 'fa-credit-card',
+        'profile_update': 'fa-user-edit',
+        'login': 'fa-sign-in-alt',
+        'payment': 'fa-dollar-sign',
+        'emergency': 'fa-ambulance',
+        'default': 'fa-circle'
+    };
+    return icons[activityType] || icons.default;
 }
 
 // Initialize map
@@ -232,19 +659,42 @@ if (forgotPassword) {
 
 // Subscription Form Handling
 function handleSubscribeButtonClick(btn) {
+    if (!btn) {
+        console.error('Subscribe button not provided');
+        return;
+    }
+
     const user = auth.currentUser;
     const plan = btn.getAttribute('data-plan');
-    const price = btn.getAttribute('data-price');
+    const basePrice = parseFloat(btn.getAttribute('data-price'));
     
     if (!user) {
         showModal(loginModal);
         return;
     }
 
+    if (!plan || isNaN(basePrice)) {
+        console.error('Invalid plan or price data', { plan, basePrice });
+        return;
+    }
+
     const paymentForm = document.getElementById('payment-form');
+    if (!paymentForm) {
+        console.error('Payment form not found');
+        return;
+    }
     
     // Show payment form if not already visible
     if (paymentForm.style.display === 'none' || !paymentForm.style.display) {
+        // Get the active tab
+        const activeTab = document.querySelector('.tab-btn.active');
+        const isOutOfTown = activeTab ? activeTab.getAttribute('data-tab') === 'outoftown' : false;
+        console.log('Active tab:', activeTab?.getAttribute('data-tab'), 'Is out of town:', isOutOfTown);
+        
+        // Calculate final price (no multiplier needed)
+        let finalPrice = basePrice;
+        console.log('Final price:', finalPrice);
+
         // Determine coverage area based on plan and selected tab
         let coverage;
         const selectedTab = document.querySelector('.tab-btn.active').getAttribute('data-tab');
@@ -281,13 +731,13 @@ function handleSubscribeButtonClick(btn) {
 
         // Update summary details
         document.getElementById('summary-plan').textContent = plan.charAt(0).toUpperCase() + plan.slice(1) + ' Package';
-        document.getElementById('summary-amount').textContent = price;
+        document.getElementById('summary-amount').textContent = finalPrice;
         document.getElementById('summary-coverage').textContent = coverage;
         
         // Update payment amount in instructions
         const paymentAmount = document.querySelector('.payment-amount');
         if (paymentAmount) {
-            paymentAmount.textContent = price;
+            paymentAmount.textContent = finalPrice;
         }
 
         // Make EcoCash code clickable
@@ -319,7 +769,7 @@ function handlePaymentSubmission(event) {
     // Upload screenshot to Firebase Storage
     const storageRef = firebase.storage().ref();
     const screenshotRef = storageRef.child(`payment_proofs/${user.uid}/${Date.now()}_${paymentScreenshot.name}`);
-    
+
     screenshotRef.put(paymentScreenshot)
         .then(() => screenshotRef.getDownloadURL())
         .then(screenshotUrl => {
@@ -363,109 +813,88 @@ function handlePaymentSubmission(event) {
 
 // Make EcoCash code clickable
 function makeEcoCashCodeClickable() {
-    const ecocashCode = document.querySelector('.ecocash-code');
-    if (ecocashCode) {
-        ecocashCode.innerHTML = `
-            <a href="tel:*151*1*0776378872*${document.getElementById('summary-amount').textContent}%23" class="ecocash-link">
-                *151*1*0776378872*${document.getElementById('summary-amount').textContent}#
-            </a>
-            <button class="copy-code-btn" onclick="copyEcoCashCode()">
-                <i class="fas fa-copy"></i> Copy Code
-            </button>
-        `;
-    }
-}
-
-// Copy EcoCash code to clipboard
-function copyEcoCashCode() {
-    const amount = document.getElementById('summary-amount').textContent;
-    const code = `*151*1*0776378872*${amount}#`;
-    
-    navigator.clipboard.writeText(code).then(() => {
-        const copyBtn = document.querySelector('.copy-code-btn');
-        const originalText = copyBtn.innerHTML;
-        copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
-        setTimeout(() => {
-            copyBtn.innerHTML = originalText;
-        }, 2000);
-    }).catch(err => {
-        console.error('Failed to copy code:', err);
-        alert('Failed to copy code. Please try manually copying.');
-    });
-}
-
-// Add click event listeners to all subscribe buttons and payment submission
-document.addEventListener('DOMContentLoaded', () => {
-    const subscribeButtons = document.querySelectorAll('.subscribe-btn');
-    subscribeButtons.forEach(btn => {
-        btn.addEventListener('click', () => handleSubscribeButtonClick(btn));
-    });
-
-    const submitPaymentBtn = document.querySelector('.submit-payment-btn');
-    if (submitPaymentBtn) {
-        submitPaymentBtn.addEventListener('click', handlePaymentSubmission);
-    }
-});
-
-// Show User Dashboard Function
-function showUserDashboard(user) {
-    const dashboardHtml = `
-        <div class="user-dashboard">
-            <h2>Welcome, ${user.displayName || user.email}</h2>
-            <div class="dashboard-content">
-                <div class="subscription-info">
-                    <h3>Subscription Details</h3>
-                    <p>Member since: <span id="memberSince"></span></p>
-                    <p>Next billing date: <span id="nextBillingDate"></span></p>
-                </div>
-                <div class="dashboard-actions">
-                    <button class="renew-btn">Renew Subscription</button>
-                    <button class="logout-btn">Logout</button>
-                </div>
-            </div>
-        </div>
-    `;
-
-    // Create and show user dashboard modal
-    const userModal = document.createElement('div');
-    userModal.className = 'modal';
-    userModal.id = 'dashboardModal';
-    userModal.innerHTML = `
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            ${dashboardHtml}
-        </div>
-    `;
-    document.body.appendChild(userModal);
-    userModal.style.display = 'block';
-
-    // Close dashboard modal
-    const closeBtn = userModal.querySelector('.close');
-    closeBtn.onclick = () => {
-        userModal.remove();
-    };
-
-    // Handle logout
-    const logoutBtn = userModal.querySelector('.logout-btn');
-    logoutBtn.onclick = () => {
-        auth.signOut().then(() => {
-            userModal.remove();
-            updateUIForLoggedOutUser();
+    const ecocashNumber = document.querySelector('.ecocash-number span');
+    if (ecocashNumber) {
+        ecocashNumber.style.cursor = 'pointer';
+        ecocashNumber.addEventListener('click', function() {
+            const number = this.textContent;
+            navigator.clipboard.writeText(number)
+                .then(() => {
+                    alert('EcoCash number copied to clipboard!');
+                })
+                .catch(err => {
+                    console.error('Failed to copy:', err);
+                });
         });
-    };
+    }
+}
 
-    // Update dashboard information
-    updateDashboardInfo();
-
-    // Handle renew subscription
-    const renewBtn = userModal.querySelector('.renew-btn');
-    renewBtn.onclick = () => {
-        userModal.remove();
-        const subscribeButtons = document.querySelectorAll('.subscribe-btn');
-        if (subscribeButtons.length > 0) {
-            subscribeButtons[0].scrollIntoView({ behavior: 'smooth' });
+// Handle payment form submission
+const paymentForm = document.getElementById('payment-form');
+if (paymentForm) {
+    paymentForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const user = auth.currentUser;
+        if (!user) {
+            alert('Please login to complete your subscription');
+            showModal(loginModal);
+            return;
         }
-    };
+
+        const referenceNumber = document.getElementById('reference-number').value;
+        if (!referenceNumber) {
+            alert('Please enter the EcoCash reference number');
+            return;
+        }
+
+        const submitBtn = paymentForm.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Processing...';
+
+        try {
+            // Get subscription details
+            const plan = document.getElementById('summary-plan').textContent;
+            const amount = document.getElementById('summary-amount').textContent;
+            const coverage = document.getElementById('summary-coverage').textContent;
+
+            // Save payment details to Firebase
+            const paymentRef = database.ref('payments').push();
+            await paymentRef.set({
+                userId: user.uid,
+                userEmail: user.email,
+                plan: plan,
+                amount: amount,
+                coverage: coverage,
+                referenceNumber: referenceNumber,
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            });
+
+            // Show success message
+            const submissionStatus = document.querySelector('.submission-status');
+            if (submissionStatus) {
+                submissionStatus.style.display = 'block';
+                submissionStatus.textContent = 'Your payment is pending approval. We will notify you once it\'s confirmed.';
+            }
+
+            // Clear form
+            document.getElementById('reference-number').value = '';
+            
+            // Hide payment form after 3 seconds
+            setTimeout(() => {
+                paymentForm.style.display = 'none';
+            }, 3000);
+
+        } catch (error) {
+            console.error('Payment submission error:', error);
+            alert('Failed to submit payment: ' + error.message);
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+        }
+    });
 }
 
 // Update UI for logged in user
@@ -473,32 +902,50 @@ function updateUIForLoggedInUser(user) {
     const loginBtn = document.querySelector('.login-btn');
     if (loginBtn) {
         loginBtn.textContent = 'My Account';
-        loginBtn.onclick = (e) => {
+        loginBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            showUserDashboard(user);
-        };
+            
+            // For admin user
+            if (user.email.toLowerCase() === 'bryandzumbira@gmail.com') {
+                showAdminDashboard(user);
+                return;
+            }
+            
+            // For regular users
+            const dashboardModal = document.getElementById('dashboardModal');
+            if (dashboardModal) {
+                showModal(dashboardModal);
+                updateDashboardInfo(user);
+            }
+        });
     }
-
-    // Update all subscribe buttons
+    
+    // Update subscription buttons
     const subscribeButtons = document.querySelectorAll('.subscribe-btn');
     subscribeButtons.forEach(btn => {
-        if (btn.textContent === 'Login to Subscribe') {
-            btn.textContent = 'Subscribe Now';
-        }
+        btn.textContent = 'Subscribe Now';
     });
 }
 
 // Update UI for logged out user
 function updateUIForLoggedOutUser() {
-    // Reset login button
     const loginBtn = document.querySelector('.login-btn');
     if (loginBtn) {
         loginBtn.textContent = 'Login';
-        loginBtn.onclick = (e) => {
+        // Remove any existing click event listeners
+        loginBtn.replaceWith(loginBtn.cloneNode(true));
+        // Add new click event listener
+        document.querySelector('.login-btn').addEventListener('click', (e) => {
             e.preventDefault();
             showModal(loginModal);
-        };
+        });
     }
+
+    // Update subscription buttons
+    const subscribeButtons = document.querySelectorAll('.subscribe-btn');
+    subscribeButtons.forEach(btn => {
+        btn.textContent = 'Login to Subscribe';
+    });
 }
 
 // Statistics Counter Animation
@@ -583,102 +1030,65 @@ document.querySelectorAll('.service-card').forEach(card => {
 // Registration Form Handling
 const registerForm = document.querySelector('.register-form');
 if (registerForm) {
-    registerForm.addEventListener('submit', function(e) {
+    registerForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        console.log('Registration form submitted'); // Debug log
         
-        const submitBtn = this.querySelector('.submit-btn');
-        submitBtn.textContent = 'Registering...';
-        submitBtn.disabled = true;
-
-        const email = this.querySelector('input[type="email"]').value;
-        const password = this.querySelector('input[type="password"]').value;
-        const confirmPassword = this.querySelector('input[type="password"]:last-of-type').value;
-        const name = this.querySelector('input[type="text"]').value;
-
-        console.log('Registration attempt with email:', email); // Debug log
-
-        // Validate inputs
-        if (!email || !password || !confirmPassword || !name) {
-            alert('Please fill in all fields');
-            submitBtn.textContent = 'Register';
-            submitBtn.disabled = false;
-            return;
-        }
-
+        const email = registerForm.querySelector('input[type="email"]').value;
+        const password = registerForm.querySelector('input[type="password"]').value;
+        const confirmPassword = registerForm.querySelector('input[type="password"][placeholder="Confirm Password"]').value;
+        const fullName = registerForm.querySelector('input[type="text"]').value;
+        
         if (password !== confirmPassword) {
             alert('Passwords do not match!');
-            submitBtn.textContent = 'Register';
-            submitBtn.disabled = false;
             return;
         }
-
-        if (password.length < 6) {
-            alert('Password must be at least 6 characters long!');
-            submitBtn.textContent = 'Register';
-            submitBtn.disabled = false;
-            return;
-        }
-
-        // Create user account
-        auth.createUserWithEmailAndPassword(email, password)
-            .then((userCredential) => {
-                console.log('User created successfully:', userCredential.user.uid);
-                // Update user profile
-                return userCredential.user.updateProfile({
-                    displayName: name
-                });
-            })
-            .then(() => {
-                console.log('Profile updated successfully');
-                // Save user data to database
-                return database.ref('users/' + auth.currentUser.uid).set({
-                    name: name,
-                    email: email,
-                    createdAt: new Date().toISOString()
-                });
-            })
-            .then(() => {
-                console.log('User data saved to database successfully');
-                hideModal(registerModal);
-                showModal(dashboardModal);
-                updateDashboardInfo();
-            })
-            .catch((error) => {
-                console.error('Registration error details:', {
-                    code: error.code,
-                    message: error.message,
-                    stack: error.stack
-                });
-                
-                let errorMessage = 'Registration failed. ';
-                
-                switch (error.code) {
-                    case 'auth/email-already-in-use':
-                        errorMessage = 'This email is already registered. Please use a different email or login.';
-                        break;
-                    case 'auth/invalid-email':
-                        errorMessage = 'Please enter a valid email address.';
-                        break;
-                    case 'auth/operation-not-allowed':
-                        errorMessage = 'Email/password accounts are not enabled. Please contact support.';
-                        break;
-                    case 'auth/weak-password':
-                        errorMessage = 'Please choose a stronger password (at least 6 characters).';
-                        break;
-                    case 'auth/network-request-failed':
-                        errorMessage = 'Network error. Please check your internet connection.';
-                        break;
-                    default:
-                        errorMessage = 'Registration failed: ' + error.message;
+        
+        try {
+            const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+            
+            // Create user data object
+            const userData = {
+                name: fullName,
+                email: email,
+                createdAt: new Date().toISOString(),
+                health: {
+                    bloodType: '',
+                    allergies: 'None',
+                    conditions: 'None',
+                    emergencyContact: ''
+                },
+                subscription: {
+                    plan: '',
+                    status: 'inactive'
                 }
-                
-                alert(errorMessage);
-            })
-            .finally(() => {
-                submitBtn.textContent = 'Register';
-                submitBtn.disabled = false;
+            };
+
+            // Save user data to Firebase
+            await database.ref('users/' + userCredential.user.uid).set(userData);
+
+            // Add account creation activity
+            await database.ref('activities/' + userCredential.user.uid).push({
+                type: 'account_creation',
+                description: 'Account created',
+                icon: 'fa-user-plus',
+                timestamp: new Date().toISOString()
             });
+
+            console.log('Registration successful:', userCredential.user.email);
+            hideModal(registerModal);
+            
+            // Show and update dashboard
+            const dashboardModal = document.getElementById('dashboardModal');
+            if (dashboardModal) {
+                showModal(dashboardModal);
+                updateDashboardInfo(userCredential.user);
+            } else {
+                console.error('Dashboard modal not found');
+            }
+        } catch (error) {
+            console.error('Registration error:', error);
+            alert('Registration failed: ' + error.message);
+        }
     });
 } else {
     console.error('Register form not found');
@@ -765,15 +1175,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Admin Dashboard Functionality
 function showAdminDashboard(user) {
-    // Check if user is admin
-    database.ref('admins').child(user.uid).once('value')
-        .then(snapshot => {
-            if (snapshot.exists()) {
-                const dashboardHtml = `
-                    <div class="admin-dashboard">
-                        <h2>Admin Dashboard</h2>
+    if (!user || user.email.toLowerCase() !== 'bryandzumbira@gmail.com') {
+        console.error('Unauthorized access attempt to admin dashboard');
+        return;
+    }
+
+    // Remove existing admin dashboard if it exists
+    const existingAdminDashboard = document.getElementById('adminDashboardModal');
+    if (existingAdminDashboard) {
+        existingAdminDashboard.remove();
+    }
+
+    // Create and show new admin dashboard
+    const adminDashboardHtml = `
+        <div class="modal" id="adminDashboardModal">
+            <div class="modal-content admin-modal">
+                <span class="close">&times;</span>
+                <div class="admin-dashboard">
+                    <h2>Admin Dashboard</h2>
+                    <div class="admin-info">
+                        <p>Welcome, Admin (${user.email})</p>
+                        <p>Last login: ${new Date().toLocaleString()}</p>
+                    </div>
+                    <div class="admin-sections">
                         <div class="transactions-section">
-                            <h3>EcoCash Transactions</h3>
+                            <h3>Subscription Management</h3>
                             <div class="transaction-filters">
                                 <select id="statusFilter">
                                     <option value="all">All Status</option>
@@ -786,45 +1212,49 @@ function showAdminDashboard(user) {
                                 Loading transactions...
                             </div>
                         </div>
-                        <button class="logout-btn">Logout</button>
+                        <div class="users-section">
+                            <h3>User Management</h3>
+                            <div id="usersList" class="users-list">
+                                Loading users...
+                            </div>
+                        </div>
                     </div>
-                `;
+                    <button class="admin-logout-btn" onclick="handleAdminLogout()">Logout</button>
+                </div>
+            </div>
+        </div>
+    `;
 
-                // Create and show admin dashboard modal
-                const adminModal = document.createElement('div');
-                adminModal.className = 'modal';
-                adminModal.innerHTML = `
-                    <div class="modal-content admin-modal">
-                        <span class="close">&times;</span>
-                        ${dashboardHtml}
-                    </div>
-                `;
-                document.body.appendChild(adminModal);
-                adminModal.style.display = 'block';
+    // Add modal to body and show it
+    document.body.insertAdjacentHTML('beforeend', adminDashboardHtml);
+    const adminModal = document.getElementById('adminDashboardModal');
+    const closeBtn = adminModal.querySelector('.close');
 
-                // Close dashboard modal
-                const closeBtn = adminModal.querySelector('.close');
-                closeBtn.onclick = () => {
-                    adminModal.remove();
-                };
+    // Show modal
+    adminModal.style.display = 'block';
 
-                // Load transactions
-                loadTransactions();
+    // Close modal functionality
+    closeBtn.onclick = () => {
+        adminModal.remove();
+    };
 
-                // Add status filter functionality
-                const statusFilter = document.getElementById('statusFilter');
-                statusFilter.addEventListener('change', () => {
-                    loadTransactions(statusFilter.value);
-                });
+    window.onclick = (e) => {
+        if (e.target === adminModal) {
+            adminModal.remove();
+        }
+    };
 
-                // Logout button
-                const logoutBtn = adminModal.querySelector('.logout-btn');
-                logoutBtn.onclick = () => {
-                    auth.signOut();
-                    adminModal.remove();
-                };
-            }
+    // Load initial data
+    loadTransactions();
+    loadUsers();
+
+    // Add status filter functionality
+    const statusFilter = document.getElementById('statusFilter');
+    if (statusFilter) {
+        statusFilter.addEventListener('change', () => {
+            loadTransactions(statusFilter.value);
         });
+    }
 }
 
 // Load and display transactions
@@ -911,188 +1341,181 @@ function updateTransactionStatus(transactionId, newStatus) {
         console.error('Error updating transaction:', error);
         alert('Error updating transaction status. Please try again.');
     });
-}
+} 
 
-// Quotation Form Handling
-function showQuotationForm() {
-    const quotationHtml = `
-        <div class="modal" id="quotationModal">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                <h2>Get a Quotation</h2>
-                <form id="quotation-form" class="quotation-form">
-                    <div class="form-group">
-                        <label for="pickup-location">Pickup Location:</label>
-                        <input type="text" id="pickup-location" required placeholder="Enter pickup location">
+// Add function to load users
+function loadUsers() {
+    const usersList = document.getElementById('usersList');
+    if (!usersList) return;
+
+    database.ref('users').once('value')
+        .then(snapshot => {
+            if (!snapshot.exists()) {
+                usersList.innerHTML = '<p>No users found</p>';
+                return;
+            }
+
+            let usersHtml = '';
+            snapshot.forEach(childSnapshot => {
+                const userData = childSnapshot.val();
+                const userId = childSnapshot.key;
+                
+                usersHtml += `
+                    <div class="user-item">
+                        <div class="user-info">
+                            <p><strong>Name:</strong> ${userData.name || 'N/A'}</p>
+                            <p><strong>Email:</strong> ${userData.email || 'N/A'}</p>
+                            <p><strong>Subscription:</strong> ${userData.subscription?.plan || 'No active plan'}</p>
+                            <p><strong>Status:</strong> ${userData.subscription?.status || 'inactive'}</p>
+                        </div>
+                        <div class="user-actions">
+                            <button onclick="viewUserDetails('${userId}')" class="view-btn">View Details</button>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="destination">Destination:</label>
-                        <input type="text" id="destination" required placeholder="Enter destination">
-                    </div>
-                    <div class="form-group">
-                        <label for="service-type">Service Type:</label>
-                        <select id="service-type" required>
-                            <option value="">Select service type</option>
-                            <option value="emergency">Emergency Transport</option>
-                            <option value="non-emergency">Non-Emergency Transport</option>
-                            <option value="transfer">Hospital Transfer</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="contact-number">Contact Number:</label>
-                        <input type="tel" id="contact-number" required placeholder="Enter your phone number">
-                    </div>
-                    <button type="submit" class="submit-btn">Get Quote</button>
-                </form>
-                <div id="quotation-result" class="quotation-result" style="display: none;">
-                    <h3>Estimated Quote</h3>
-                    <div class="quote-details"></div>
-                    <button class="subscribe-btn" onclick="handleQuotationSubscribe()">Subscribe Now</button>
-                </div>
-            </div>
-        </div>
-    `;
+                `;
+            });
 
-    // Add modal to body
-    document.body.insertAdjacentHTML('beforeend', quotationHtml);
-    
-    const quotationModal = document.getElementById('quotationModal');
-    const closeBtn = quotationModal.querySelector('.close');
-    const quotationForm = document.getElementById('quotation-form');
-
-    // Show modal
-    quotationModal.style.display = 'block';
-
-    // Close modal when clicking X
-    closeBtn.onclick = () => {
-        quotationModal.remove();
-    };
-
-    // Close modal when clicking outside
-    window.onclick = (e) => {
-        if (e.target === quotationModal) {
-            quotationModal.remove();
-        }
-    };
-
-    // Handle form submission
-    quotationForm.addEventListener('submit', handleQuotationSubmit);
-}
-
-// Handle quotation form submission
-function handleQuotationSubmit(e) {
-    e.preventDefault();
-    
-    const pickup = document.getElementById('pickup-location').value;
-    const destination = document.getElementById('destination').value;
-    const serviceType = document.getElementById('service-type').value;
-    const contactNumber = document.getElementById('contact-number').value;
-
-    // Calculate base price based on service type
-    let basePrice;
-    switch(serviceType) {
-        case 'emergency':
-            basePrice = 50;
-            break;
-        case 'non-emergency':
-            basePrice = 30;
-            break;
-        case 'transfer':
-            basePrice = 40;
-            break;
-        default:
-            basePrice = 30;
-    }
-
-    // Save quotation to database
-    const quotationData = {
-        pickup: pickup,
-        destination: destination,
-        serviceType: serviceType,
-        contactNumber: contactNumber,
-        basePrice: basePrice,
-        createdAt: new Date().toISOString()
-    };
-
-    database.ref('quotations').push(quotationData)
-        .then(() => {
-            // Show quotation result
-            const resultDiv = document.getElementById('quotation-result');
-            const detailsDiv = resultDiv.querySelector('.quote-details');
-            
-            detailsDiv.innerHTML = `
-                <p><strong>Service Type:</strong> ${serviceType.charAt(0).toUpperCase() + serviceType.slice(1)}</p>
-                <p><strong>From:</strong> ${pickup}</p>
-                <p><strong>To:</strong> ${destination}</p>
-                <p><strong>Estimated Base Price:</strong> $${basePrice}</p>
-                <p class="note">* Final price may vary based on distance and additional services required</p>
-            `;
-            
-            // Hide form and show result
-            document.getElementById('quotation-form').style.display = 'none';
-            resultDiv.style.display = 'block';
+            usersList.innerHTML = usersHtml || '<p>No users found</p>';
         })
         .catch(error => {
-            console.error('Error saving quotation:', error);
-            alert('Error generating quotation. Please try again.');
+            console.error('Error loading users:', error);
+            usersList.innerHTML = '<p>Error loading users. Please try again later.</p>';
         });
 }
 
-// Handle subscription from quotation
-function handleQuotationSubscribe() {
-    const quotationModal = document.getElementById('quotationModal');
-    if (quotationModal) {
-        quotationModal.remove();
-    }
+// Add function to handle admin logout
+function handleAdminLogout() {
+    auth.signOut()
+        .then(() => {
+            const adminModal = document.getElementById('adminDashboardModal');
+            if (adminModal) {
+                adminModal.remove();
+            }
+            console.log('Admin logged out successfully');
+        })
+        .catch(error => {
+            console.error('Logout error:', error);
+            alert('Logout failed: ' + error.message);
+        });
+}
+
+// Add function to view user details
+function viewUserDetails(userId) {
+    database.ref('users/' + userId).once('value')
+        .then(snapshot => {
+            const userData = snapshot.val();
+            if (!userData) {
+                alert('User data not found');
+                return;
+            }
+
+            const userDetailsHtml = `
+                <div class="modal" id="userDetailsModal">
+                    <div class="modal-content">
+                        <span class="close">&times;</span>
+                        <h3>User Details</h3>
+                        <div class="user-details">
+                            <h4>Personal Information</h4>
+                            <p><strong>Name:</strong> ${userData.name || 'N/A'}</p>
+                            <p><strong>Email:</strong> ${userData.email || 'N/A'}</p>
+                            <p><strong>Phone:</strong> ${userData.phoneNumber || 'N/A'}</p>
+                            <p><strong>Address:</strong> ${userData.address || 'N/A'}</p>
+                            
+                            <h4>Health Information</h4>
+                            <p><strong>Blood Type:</strong> ${userData.health?.bloodType || 'N/A'}</p>
+                            <p><strong>Allergies:</strong> ${userData.health?.allergies || 'None'}</p>
+                            <p><strong>Medical Conditions:</strong> ${userData.health?.conditions || 'None'}</p>
+                            <p><strong>Emergency Contact:</strong> ${userData.health?.emergencyContact || 'N/A'}</p>
+                            
+                            <h4>Subscription Details</h4>
+                            <p><strong>Plan:</strong> ${userData.subscription?.plan || 'No active plan'}</p>
+                            <p><strong>Status:</strong> ${userData.subscription?.status || 'inactive'}</p>
+                            <p><strong>Start Date:</strong> ${userData.subscription?.startDate ? new Date(userData.subscription.startDate).toLocaleDateString() : 'N/A'}</p>
+                            <p><strong>End Date:</strong> ${userData.subscription?.endDate ? new Date(userData.subscription.endDate).toLocaleDateString() : 'N/A'}</p>
+                            </div>
+                    </div>
+                </div>
+            `;
+
+            document.body.insertAdjacentHTML('beforeend', userDetailsHtml);
+            
+            const detailsModal = document.getElementById('userDetailsModal');
+            const closeBtn = detailsModal.querySelector('.close');
+            
+            detailsModal.style.display = 'block';
+
+            closeBtn.onclick = () => {
+                detailsModal.remove();
+            };
+
+            window.onclick = (e) => {
+                if (e.target === detailsModal) {
+                    detailsModal.remove();
+                }
+            };
+        })
+        .catch(error => {
+            console.error('Error loading user details:', error);
+            alert('Error loading user details. Please try again.');
+        });
+}
+
+// Function to show user dashboard
+function showUserDashboard(user) {
+    if (!user) return;
     
-    // Scroll to subscription plans
-    const subscriptionSection = document.querySelector('.subscription-plans');
-    if (subscriptionSection) {
-        subscriptionSection.scrollIntoView({ behavior: 'smooth' });
+    const dashboardModal = document.getElementById('dashboardModal');
+    if (dashboardModal) {
+        showModal(dashboardModal);
+        updateDashboardInfo(user);
+    } else {
+        console.error('User dashboard modal not found');
     }
 }
 
-// Add quotation button event listener
-document.addEventListener('DOMContentLoaded', () => {
-    const getQuoteBtn = document.querySelector('.get-quote-btn');
-    if (getQuoteBtn) {
-        getQuoteBtn.addEventListener('click', showQuotationForm);
-    }
-});
+// Update the logout handler to handle both dashboards
+function handleLogout() {
+    auth.signOut()
+        .then(() => {
+            // Hide all possible dashboard modals
+            const dashboardModal = document.getElementById('dashboardModal');
+            const adminDashboardModal = document.getElementById('adminDashboardModal');
+            const dualRoleDashboardModal = document.getElementById('dualRoleDashboardModal');
+            
+            if (dashboardModal) hideModal(dashboardModal);
+            if (adminDashboardModal) adminDashboardModal.remove();
+            if (dualRoleDashboardModal) dualRoleDashboardModal.remove();
+            
+            console.log('User signed out successfully');
+        })
+        .catch(error => {
+            console.error('Logout error:', error);
+            alert('Logout failed: ' + error.message);
+        });
+}
 
-// Add tab switching functionality
-document.addEventListener('DOMContentLoaded', () => {
-    const tabButtons = document.querySelectorAll('.tab-btn');
-    const pricingPlans = document.querySelectorAll('.pricing-plans');
-    const paymentForm = document.getElementById('payment-form');
+// Add tab switching functionality for pricing plans
+document.addEventListener('DOMContentLoaded', function() {
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const localPlans = document.getElementById('local-plans');
+    const outoftownPlans = document.getElementById('outoftown-plans');
 
-    tabButtons.forEach(button => {
-        button.addEventListener('click', () => {
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
             // Remove active class from all buttons and plans
-            tabButtons.forEach(btn => btn.classList.remove('active'));
-            pricingPlans.forEach(plan => plan.classList.remove('active'));
+            tabBtns.forEach(b => b.classList.remove('active'));
+            localPlans.classList.remove('active');
+            outoftownPlans.classList.remove('active');
 
-            // Add active class to clicked button
-            button.classList.add('active');
-
-            // Show corresponding plans
-            const tabId = button.getAttribute('data-tab');
-            const activePlans = document.getElementById(`${tabId}-plans`);
-            if (activePlans) {
-                activePlans.classList.add('active');
+            // Add active class to clicked button and corresponding plans
+            btn.classList.add('active');
+            const selectedTab = btn.getAttribute('data-tab');
+            if (selectedTab === 'local') {
+                localPlans.classList.add('active');
+            } else if (selectedTab === 'outoftown') {
+                outoftownPlans.classList.add('active');
             }
-
-            // Hide payment form when switching tabs
-            if (paymentForm) {
-                paymentForm.style.display = 'none';
-            }
-
-            // Reinitialize subscription buttons for the newly displayed plans
-            const subscribeButtons = activePlans.querySelectorAll('.subscribe-btn');
-            subscribeButtons.forEach(btn => {
-                btn.removeEventListener('click', handleSubscribeButtonClick);
-                btn.addEventListener('click', () => handleSubscribeButtonClick(btn));
-            });
         });
     });
 });
+
